@@ -1,0 +1,31 @@
+running egg_info
+creating ../../build/puzzlebot_minichallenge2/puzzlebot_minichallenge2.egg-info
+writing ../../build/puzzlebot_minichallenge2/puzzlebot_minichallenge2.egg-info/PKG-INFO
+writing dependency_links to ../../build/puzzlebot_minichallenge2/puzzlebot_minichallenge2.egg-info/dependency_links.txt
+writing entry points to ../../build/puzzlebot_minichallenge2/puzzlebot_minichallenge2.egg-info/entry_points.txt
+writing requirements to ../../build/puzzlebot_minichallenge2/puzzlebot_minichallenge2.egg-info/requires.txt
+writing top-level names to ../../build/puzzlebot_minichallenge2/puzzlebot_minichallenge2.egg-info/top_level.txt
+writing manifest file '../../build/puzzlebot_minichallenge2/puzzlebot_minichallenge2.egg-info/SOURCES.txt'
+reading manifest file '../../build/puzzlebot_minichallenge2/puzzlebot_minichallenge2.egg-info/SOURCES.txt'
+writing manifest file '../../build/puzzlebot_minichallenge2/puzzlebot_minichallenge2.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/MInichallenge2/build/puzzlebot_minichallenge2/build
+creating /home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/MInichallenge2/build/puzzlebot_minichallenge2/build/lib
+creating /home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/MInichallenge2/build/puzzlebot_minichallenge2/build/lib/puzzlebot_minichallenge2
+copying puzzlebot_minichallenge2/__init__.py -> /home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/MInichallenge2/build/puzzlebot_minichallenge2/build/lib/puzzlebot_minichallenge2
+running install
+running install_lib
+creating /home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/MInichallenge2/install/puzzlebot_minichallenge2/lib/python3.10/site-packages/puzzlebot_minichallenge2
+copying /home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/MInichallenge2/build/puzzlebot_minichallenge2/build/lib/puzzlebot_minichallenge2/__init__.py -> /home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/MInichallenge2/install/puzzlebot_minichallenge2/lib/python3.10/site-packages/puzzlebot_minichallenge2
+byte-compiling /home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/MInichallenge2/install/puzzlebot_minichallenge2/lib/python3.10/site-packages/puzzlebot_minichallenge2/__init__.py to __init__.cpython-310.pyc
+running install_data
+creating /home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/MInichallenge2/install/puzzlebot_minichallenge2/share/ament_index
+creating /home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/MInichallenge2/install/puzzlebot_minichallenge2/share/ament_index/resource_index
+creating /home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/MInichallenge2/install/puzzlebot_minichallenge2/share/ament_index/resource_index/packages
+copying resource/puzzlebot_minichallenge2 -> /home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/MInichallenge2/install/puzzlebot_minichallenge2/share/ament_index/resource_index/packages
+copying package.xml -> /home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/MInichallenge2/install/puzzlebot_minichallenge2/share/puzzlebot_minichallenge2
+running install_egg_info
+Copying ../../build/puzzlebot_minichallenge2/puzzlebot_minichallenge2.egg-info to /home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/MInichallenge2/install/puzzlebot_minichallenge2/lib/python3.10/site-packages/puzzlebot_minichallenge2-0.0.0-py3.10.egg-info
+running install_scripts
+writing list of installed files to '/home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/MInichallenge2/build/puzzlebot_minichallenge2/install.log'

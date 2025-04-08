@@ -1,0 +1,3 @@
+[console_scripts]
+Controller = puzzlebot_minichallenge2.Controller:main
+
