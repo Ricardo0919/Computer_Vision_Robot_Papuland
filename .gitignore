@@ -1,0 +1,29 @@
+# ROS2 workspace build artifacts
+build/
+install/
+log/
+
+# Colcon build specific directories
+**/build/
+**/install/
+**/log/
+
+# IDEs and editor files
+.vscode/
+.idea/
+
+# Python virtual environments
+*.env/
+*.venv/
+
+# CMake files
+CMakeLists.txt.user
+CMakeCache.txt
+cmake-build-*/
+
+# VSCode settings
+.vscode/
+
+# ROS2 workspace specific files
+**/.rosinstall
+**/.colcon/
