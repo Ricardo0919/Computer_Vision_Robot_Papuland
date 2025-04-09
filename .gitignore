@@ -27,3 +27,8 @@ cmake-build-*/
 # ROS2 workspace specific files
 **/.rosinstall
 **/.colcon/
+
+# Carpetas específicas del proyecto
+puzzlebot_description/
+puzzlebot_gazebo/
+mobile_robotics/
