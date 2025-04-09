@@ -12,8 +12,8 @@ class GroundTruthPublisher(Node):
         super().__init__('ground_truth_publisher')
 
         # Parámetros físicos
-        self.L = 0.16  # distancia entre ruedas
-        self.K = 0.0552   # factor para escalar velocidad si es necesario
+        self.L = 0.93  # distancia entre ruedas
+        self.K = 0.055   # factor para escalar velocidad si es necesario
 
         # Estado
         self.x = 0.0
