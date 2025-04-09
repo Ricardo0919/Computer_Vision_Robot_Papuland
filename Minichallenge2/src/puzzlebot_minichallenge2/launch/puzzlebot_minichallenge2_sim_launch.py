@@ -13,7 +13,7 @@ def generate_launch_description():
             {'use_sim_time': False},
             # {'use_sim_time': True}, # Habilitar si se usa simulación
             {'mode': 'time'},
-            {'total_time': 50.0},
+            {'total_time': 30.0},
             {'side_length': 2.0}
         ]  
     )
