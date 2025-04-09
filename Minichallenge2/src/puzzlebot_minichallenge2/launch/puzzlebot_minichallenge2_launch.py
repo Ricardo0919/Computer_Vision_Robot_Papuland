@@ -12,6 +12,7 @@ def generate_launch_description():
         output='screen',
         parameters=[
             {'use_sim_time': True},
+            # {'use_sim_time': True}, # Habilitar si se usa simulación
             {'mode': 'time'},
             {'total_time': 30.0},
             {'side_length': 2.0}

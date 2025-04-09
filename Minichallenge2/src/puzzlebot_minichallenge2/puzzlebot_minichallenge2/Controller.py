@@ -31,7 +31,7 @@ class SquareController(Node):
         # Datos de posición
         self.current_pose = None
         s = self.side_length
-        self.target_points = [(0, 0), (0, s), (-s, s), (-s, 0)]
+        self.target_points = [(0, 0), (s, 0), (s, s), (0, s)]
         self.errors = []
 
         self.get_logger().info('SquareController iniciado.')
@@ -87,6 +87,7 @@ class SquareController(Node):
             pt = f"p{i+1}"
             target = self.target_points[i]
             lines.append("{:<5} ({:>4.1f}, {:>4.1f}) {:>10.3f}".format(pt, target[0], target[1], error))
+        lines.append("")
         result = "\n".join(lines)
 
         with open("errors.txt", "w") as f:
