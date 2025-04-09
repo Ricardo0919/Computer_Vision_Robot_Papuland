@@ -6,7 +6,7 @@ from nav_msgs.msg import Odometry
 import time
 import math
 
-class SquareController(Node):
+class Controller(Node):
     def __init__(self):
         super().__init__('square_controller')
 
@@ -143,7 +143,7 @@ class SquareController(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = SquareController()
+    node = Controller()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()

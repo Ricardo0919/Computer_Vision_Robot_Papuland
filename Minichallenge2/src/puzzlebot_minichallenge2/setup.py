@@ -25,6 +25,8 @@ setup(
         'console_scripts': [
             'Controller = puzzlebot_minichallenge2.Controller:main',
             'ground_truth_node = puzzlebot_minichallenge2.ground_truth_node:main',
+            'PathGenerator = puzzlebot_minichallenge2.path_generator:main',
+            'Controller_path = puzzlebot_minichallenge2.Controller_path:main',
         ],
     },
 )
