@@ -24,14 +24,7 @@ def generate_launch_description():
         executable='rqt_graph'
     )
 
-    # Nodo para configurar parámetros en tiempo real usando rqt_reconfigure
-    rqt_reconfigure = Node(
-        name='rqt_reconfigure',
-        package='rqt_reconfigure',
-        executable='rqt_reconfigure'
-    )
-
     # Definir la descripción de lanzamiento con todos los nodos configurados
-    l_d = LaunchDescription([Controller, rqt_graph, rqt_reconfigure])
+    l_d = LaunchDescription([Controller, rqt_graph])
 
     return l_d  # Retornar la descripción de lanzamiento

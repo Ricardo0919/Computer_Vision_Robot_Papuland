@@ -13,6 +13,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*launch.[pxy][yma]*'))),
+        (os.path.join('share', package_name, 'config'), glob(os.path.join('config', '*.[yma]*'))),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -25,8 +26,8 @@ setup(
         'console_scripts': [
             'Controller = puzzlebot_minichallenge2.Controller:main',
             'ground_truth_node = puzzlebot_minichallenge2.ground_truth_node:main',
-            'PathGenerator = puzzlebot_minichallenge2.path_generator:main',
-            'Controller_path = puzzlebot_minichallenge2.Controller_path:main',
+            'PathGenerator = puzzlebot_minichallenge2.PathGenerator:main',
+            'PathController = puzzlebot_minichallenge2.PathController:main',
         ],
     },
 )

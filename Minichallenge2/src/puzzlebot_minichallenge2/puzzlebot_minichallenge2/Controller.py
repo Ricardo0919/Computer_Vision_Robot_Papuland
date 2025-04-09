@@ -4,7 +4,7 @@ from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 import time
-import math
+import numpy as np
 
 class Controller(Node):
     def __init__(self):
@@ -50,15 +50,15 @@ class Controller(Node):
             straight_time = self.total_time / 8
             turn_time = self.total_time / 8
             self.linear_speed = self.side_length / straight_time
-            self.angular_speed = (math.pi / 2) / turn_time
+            self.angular_speed = (np.pi / 2) / turn_time
         else:
             self.t_straight = self.side_length / self.linear_speed
-            self.angular_speed = math.pi / 4
-            self.t_turn = (math.pi / 2) / self.angular_speed
+            self.angular_speed = np.pi / 4
+            self.t_turn = (np.pi / 2) / self.angular_speed
             self.total_time = 4 * (self.t_straight + self.t_turn)
 
         self.t_straight = self.side_length / self.linear_speed
-        self.t_turn = (math.pi / 2) / self.angular_speed
+        self.t_turn = (np.pi / 2) / self.angular_speed
 
         self.get_logger().info(
             f"[PARAMS] mode={self.mode} | total_time={self.total_time:.2f} s | "
@@ -141,11 +141,11 @@ class Controller(Node):
         for i in range(4):
             px, py = self.target_points[i]
             rx, ry = self.real_positions[i]
-            err = math.sqrt((rx - px)**2 + (ry - py)**2)
+            err = np.sqrt((rx - px)**2 + (ry - py)**2)
             lines.append(f"p{i+1:<3} ({px:5.1f},{py:5.1f})  ({fmt(rx):8.2f},{fmt(ry):8.2f})   {err:8.3f}")
 
         rx_last, ry_last = self.real_positions[4]
-        err_pf = math.sqrt((rx_last - 0.0)**2 + (ry_last - 0.0)**2)
+        err_pf = np.sqrt((rx_last - 0.0)**2 + (ry_last - 0.0)**2)
         lines.append(f"pf   (  0.0,  0.0)  ({fmt(rx_last):8.2f},{fmt(ry_last):8.2f})   {err_pf:8.3f}")
 
         lines.append("")

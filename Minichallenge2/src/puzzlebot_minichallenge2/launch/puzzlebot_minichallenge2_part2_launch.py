@@ -1,41 +1,46 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from ament_index_python.packages import get_package_share_directory  # Añadir esto
-import os  # Añadir esto
+from ament_index_python.packages import get_package_share_directory
+import os
 
 def generate_launch_description():
     # Obtener la ruta del paquete y del archivo YAML
     pkg_dir = get_package_share_directory('puzzlebot_minichallenge2')
-    config_path = os.path.join(pkg_dir, 'config', 'path_config.yaml')  # Definir ruta absoluta
+    config_path = os.path.join(pkg_dir, 'config', 'path.yaml')
 
-    # Nodo PathGenerator (corregir nombre del ejecutable y parámetro)
+    # Nodo Path Generator
     PathGenerator = Node(
-        name="path_generator",
+        name="PathGenerator",
         package='puzzlebot_minichallenge2',
-        executable='PathGenerator',  # Nombre debe coincidir con entry_points
+        executable='PathGenerator',  # nombre definido en entry_points
         emulate_tty=True,
         output='screen',
         parameters=[
             {'use_sim_time': True},
-            {'config_file': config_path}  # Usar la variable definida
+            {'config_file': config_path}
         ]
     )
-    
-    # Nodo para mostrar el grafo de nodos de ROS en rqt_graph
+
+    # Nodo Controller
+    PathController = Node(
+        name="PathController",
+        package='puzzlebot_minichallenge2',
+        executable='PathController',
+        emulate_tty=True,
+        output='screen',
+        parameters=[
+            {'use_sim_time': True}
+        ]
+    )
+
+    # Herramientas visuales (opcional)
     rqt_graph = Node(
         name='rqt_graph',
         package='rqt_graph',
         executable='rqt_graph'
     )
 
-    # Nodo para configurar parámetros en tiempo real usando rqt_reconfigure
-    rqt_reconfigure = Node(
-        name='rqt_reconfigure',
-        package='rqt_reconfigure',
-        executable='rqt_reconfigure'
-    )
+    # Launch Description
+    l_d = LaunchDescription([PathGenerator, PathController, rqt_graph])
 
-    # Definir la descripción de lanzamiento con todos los nodos configurados
-    l_d = LaunchDescription([PathGenerator, rqt_graph, rqt_reconfigure])
-
-    return l_d  # Retornar la descripción de lanzamiento
+    return l_d

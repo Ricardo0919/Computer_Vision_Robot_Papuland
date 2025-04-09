@@ -1,4 +1,3 @@
-# Mensaje personalizado para puntos de ruta
 geometry_msgs/Pose pose
 float32 linear_velocity
 float32 angular_velocity

@@ -1,0 +1,16 @@
+# Tipo de definición de ruta "time" o "speed"
+path_type: time  
+target: 30  # segundos (si es "time") o m/s (si es "speed")
+
+# Puntos de la ruta (coordenadas X y Y en metros)
+waypoints:
+  - {x: 2.0, y: 0.0}
+  - {x: 2.0, y: 2.0}
+  - {x: 0.0, y: 2.0}
+  - {x: 0.0, y: 0.0}
+
+#waypoints:
+#  - {x: 1.0, y: 0.5}
+#  - {x: 0.4, y: 1.2}
+#  - {x: 1.2, y: 1.2}
+#  - {x: 0.2, y: 0.6}
