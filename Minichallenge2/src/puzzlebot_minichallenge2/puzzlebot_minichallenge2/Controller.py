@@ -31,7 +31,7 @@ class SquareController(Node):
         # Datos de posición
         self.current_pose = None
         s = self.side_length
-        self.target_points = [(0, 0), (s, 0), (s, s), (0, s)]
+        self.target_points = [(0, 0), (0, s), (-s, s), (-s, 0)]
         self.errors = []
 
         self.get_logger().info('SquareController iniciado.')
