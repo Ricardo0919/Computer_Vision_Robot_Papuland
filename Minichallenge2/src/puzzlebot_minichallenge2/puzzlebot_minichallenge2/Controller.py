@@ -72,13 +72,12 @@ class Controller(Node):
         twist = Twist()
 
         if self.state == 'START':
-            if self.current_pose is not None:
-                x0 = self.current_pose.position.x
-                y0 = self.current_pose.position.y
-            else:
-                x0, y0 = (0.0, 0.0)
-                self.get_logger().warn("No se recibió pose; usando (0,0) para p1")
+            if self.current_pose is None:
+                self.get_logger().warn("Esperando pose válida de /ground_truth...")
+                return  # No hace nada hasta recibir una pose válida
 
+            x0 = self.current_pose.position.x
+            y0 = self.current_pose.position.y
             self.real_positions.append((x0, y0))
             self.get_logger().info(f"Posición inicial (p1): ({x0:.2f}, {y0:.2f})")
 
