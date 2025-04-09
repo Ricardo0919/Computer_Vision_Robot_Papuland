@@ -1,0 +1,8 @@
+
+Tabla de Errores (d_error en metros):
+
+Punto   Objetivo      Error
+p1    ( 0.0,  0.0)      1.890
+p2    ( 2.0,  0.0)      1.834
+p3    ( 2.0,  2.0)      1.586
+p4    ( 0.0,  2.0)      1.130

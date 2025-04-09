@@ -1,6 +1,8 @@
+#!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry
 import time
 import math
 
@@ -8,42 +10,99 @@ class SquareController(Node):
     def __init__(self):
         super().__init__('square_controller')
 
+        # Parámetros configurables por el usuario
         self.declare_parameter('side_length', 2.0)
+        self.declare_parameter('mode', 'speed')  # 'speed' o 'time'
         self.declare_parameter('linear_speed', 0.2)
-        self.declare_parameter('angular_speed', 0.4)
+        self.declare_parameter('total_time', 40.0)
 
         self.get_params()
 
+        # Comunicación
         self.publisher = self.create_publisher(Twist, '/cmd_vel', 10)
-        self.timer = self.create_timer(0.1, self.loop)  # 10 Hz
+        self.pose_sub = self.create_subscription(Odometry, '/ground_truth', self.pose_callback, 10)
 
+        # Estados
+        self.timer = self.create_timer(0.1, self.loop)  # 10 Hz
         self.state = 'START'
         self.count = 0
         self.t_start = time.time()
 
+        # Datos de posición
+        self.current_pose = None
+        s = self.side_length
+        self.target_points = [(0, 0), (s, 0), (s, s), (0, s)]
+        self.errors = []
+
         self.get_logger().info('SquareController iniciado.')
+
+    def pose_callback(self, msg):
+        self.current_pose = msg.pose.pose
 
     def get_params(self):
         self.side_length = self.get_parameter('side_length').value
+        self.mode = self.get_parameter('mode').value.lower().strip()
         self.linear_speed = self.get_parameter('linear_speed').value
-        self.angular_speed = self.get_parameter('angular_speed').value
+        self.total_time = self.get_parameter('total_time').value
+
+        if self.mode not in ['speed', 'time']:
+            self.get_logger().error(f"Modo inválido: '{self.mode}'. Debe ser 'speed' o 'time'. Terminando el nodo.")
+            rclpy.shutdown()
+            return
+
+        if self.mode == 'time':
+            straight_time = self.total_time / 8
+            turn_time = self.total_time / 8
+            self.linear_speed = self.side_length / straight_time
+            self.angular_speed = (math.pi / 2) / turn_time
+        else:
+            self.t_straight = self.side_length / self.linear_speed
+            self.angular_speed = math.pi / 4
+            self.t_turn = (math.pi / 2) / self.angular_speed
+            self.total_time = 4 * (self.t_straight + self.t_turn)
 
         self.t_straight = self.side_length / self.linear_speed
         self.t_turn = (math.pi / 2) / self.angular_speed
 
-        self.get_logger().info(f"[PARAMS] lado={self.side_length}m, v={self.linear_speed}m/s, w={self.angular_speed}rad/s")
+        self.get_logger().info(
+            f"[PARAMS] mode={self.mode} | total_time={self.total_time:.2f} s | "
+            f"velocidad lineal={self.linear_speed:.2f} m/s | velocidad angular={self.angular_speed:.2f} rad/s"
+        )
+
+    def calculate_error(self, target):
+        if self.current_pose is None:
+            self.get_logger().warn('No se recibió pose aún, error no calculado.')
+            return None
+
+        x_real = self.current_pose.position.x
+        y_real = self.current_pose.position.y
+        x_target, y_target = target
+        error = math.sqrt((x_real - x_target) ** 2 + (y_real - y_target) ** 2)
+        return error
+
+    def save_errors_to_txt(self):
+        lines = ["\nTabla de Errores (d_error en metros):\n"]
+        lines.append("{:<5} {:>10} {:>10}".format("Punto", "Objetivo", "Error"))
+        for i, error in enumerate(self.errors):
+            pt = f"p{i+1}"
+            target = self.target_points[i]
+            lines.append("{:<5} ({:>4.1f}, {:>4.1f}) {:>10.3f}".format(pt, target[0], target[1], error))
+        result = "\n".join(lines)
+
+        with open("errors.txt", "w") as f:
+            f.write(result)
+
+        self.get_logger().info("Tabla de errores guardada en 'errors.txt'.")
+        self.get_logger().info("\n" + result)
 
     def loop(self):
         now = time.time()
         elapsed = now - self.t_start
-
-        # Actualizamos los parámetros en tiempo real por si los cambiaste
         self.get_params()
-
         twist = Twist()
 
         if self.state == 'START':
-            self.get_logger().info('Empezando...')
+            self.get_logger().info('Empezando recorrido en cuadrado...')
             self.state = 'STRAIGHT'
             self.t_start = now
 
@@ -53,7 +112,13 @@ class SquareController(Node):
             else:
                 self.state = 'TURN'
                 self.t_start = now
-                self.get_logger().info(f'Lado {self.count + 1} completado. Girando...')
+                error = self.calculate_error(self.target_points[self.count])
+                if error is not None:
+                    self.errors.append(error)
+                    self.get_logger().info(f"Lado {self.count+1} completado. Error = {error:.3f} m")
+                else:
+                    self.errors.append(-1)  # sin datos
+                self.get_logger().info(f"Iniciando giro {self.count+1}...")
 
         elif self.state == 'TURN':
             if elapsed < self.t_turn:
@@ -62,13 +127,14 @@ class SquareController(Node):
                 self.count += 1
                 if self.count >= 4:
                     self.state = 'STOP'
-                    self.get_logger().info('Trayectoria completa.')
+                    self.get_logger().info('Trayectoria cuadrada completada.')
                 else:
                     self.state = 'STRAIGHT'
                     self.t_start = now
 
         elif self.state == 'STOP':
-            self.publisher.publish(Twist())  # Publishes zero velocities
+            self.publisher.publish(Twist())
+            self.save_errors_to_txt()
             rclpy.shutdown()
             return
 
