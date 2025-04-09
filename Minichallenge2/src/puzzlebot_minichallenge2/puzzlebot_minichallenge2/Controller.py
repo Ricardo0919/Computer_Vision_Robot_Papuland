@@ -13,7 +13,7 @@ class Controller(Node):
         self.declare_parameter('side_length', 2.0)
         self.declare_parameter('mode', 'time')
         self.declare_parameter('linear_speed', 0.2)
-        self.declare_parameter('total_time', 30.0)
+        self.declare_parameter('total_time', 90.0)
 
         self.get_params()
 
