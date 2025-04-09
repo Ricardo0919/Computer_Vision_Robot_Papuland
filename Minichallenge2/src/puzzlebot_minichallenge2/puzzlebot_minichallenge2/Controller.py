@@ -2,7 +2,6 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
-from nav_msgs.msg import Odometry
 import time
 import numpy as np
 
@@ -18,18 +17,13 @@ class Controller(Node):
         self.get_params()
 
         self.publisher = self.create_publisher(Twist, '/cmd_vel', 10)
-        self.pose_sub = self.create_subscription(Odometry, '/ground_truth', self.pose_callback, 10)
-
         self.timer = self.create_timer(0.1, self.loop)
+
         self.state = 'START'
         self.count = 0
         self.t_start = time.time()
 
-        self.current_pose = None
         self.get_logger().info('SquareController iniciado.')
-
-    def pose_callback(self, msg):
-        self.current_pose = msg.pose.pose
 
     def get_params(self):
         self.side_length = self.get_parameter('side_length').value
@@ -68,10 +62,6 @@ class Controller(Node):
         twist = Twist()
 
         if self.state == 'START':
-            if self.current_pose is None:
-                self.get_logger().warn("Esperando pose válida de /ground_truth...")
-                return
-
             self.get_logger().info("Inicio del recorrido.")
             self.state = 'STRAIGHT'
             self.t_start = now
