@@ -35,9 +35,11 @@ class GroundTruthPublisher(Node):
 
     def left_cb(self, msg):
         self.vl = msg.data * self.K
+        self.get_logger().info(f"[left_cb] Recibido vl= {msg.data:.3f}, escalada= {self.vl:.3f}")
 
     def right_cb(self, msg):
         self.vr = msg.data * self.K
+        self.get_logger().info(f"[right_cb] Recibido vr= {msg.data:.3f}, escalada= {self.vr:.3f}")
 
     def timer_callback(self):
         now = self.get_clock().now()

@@ -10,8 +10,7 @@ def generate_launch_description():
         emulate_tty=True,
         output='screen',
         parameters=[
-            {'use_sim_time': False},
-            # {'use_sim_time': True}, # Habilitar si se usa simulación
+            {'use_sim_time': True},
             {'mode': 'time'},
             {'total_time': 30.0},
             {'side_length': 2.0}
