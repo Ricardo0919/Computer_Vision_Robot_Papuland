@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'Controller = puzzlebot_minichallenge2.Controller:main',
+            'ControllerOdometry = puzzlebot_minichallenge2.ControllerOdometry:main',
             'ground_truth_node = puzzlebot_minichallenge2.ground_truth_node:main',
             'PathGenerator = puzzlebot_minichallenge2.PathGenerator:main',
             'PathController = puzzlebot_minichallenge2.PathController:main',

@@ -26,6 +26,10 @@ class Controller(Node):
         self.t_start = time.time()
 
         self.current_pose = None
+        s = self.side_length
+        self.target_points = [(0, 0), (s, 0), (s, s), (0, s)]
+        self.real_positions = []
+
         self.get_logger().info('SquareController iniciado.')
 
     def pose_callback(self, msg):
@@ -70,9 +74,13 @@ class Controller(Node):
         if self.state == 'START':
             if self.current_pose is None:
                 self.get_logger().warn("Esperando pose válida de /ground_truth...")
-                return
+                return  # No hace nada hasta recibir una pose válida
 
-            self.get_logger().info("Inicio del recorrido.")
+            x0 = self.current_pose.position.x
+            y0 = self.current_pose.position.y
+            self.real_positions.append((x0, y0))
+            self.get_logger().info(f"Posición inicial (p1): ({x0:.2f}, {y0:.2f})")
+
             self.state = 'STRAIGHT'
             self.t_start = now
 
@@ -82,8 +90,17 @@ class Controller(Node):
             else:
                 self.state = 'TURN'
                 self.t_start = now
+
+                if self.current_pose:
+                    x = self.current_pose.position.x
+                    y = self.current_pose.position.y
+                else:
+                    x, y = (0.0, 0.0)
+                    self.get_logger().warn("No se recibió pose al terminar lado; usando (0,0)")
+
+                self.real_positions.append((x, y))
                 self.count += 1
-                self.get_logger().info(f"Lado {self.count} completado.")
+                self.get_logger().info(f"Lado {self.count} completado en ({x:.2f}, {y:.2f})")
 
         elif self.state == 'TURN':
             if elapsed < self.t_turn:
@@ -98,10 +115,45 @@ class Controller(Node):
 
         elif self.state == 'STOP':
             self.publisher.publish(Twist())
+
+            # Agregar punto final
+            if self.current_pose:
+                x = self.current_pose.position.x
+                y = self.current_pose.position.y
+            else:
+                x, y = (0.0, 0.0)
+                self.get_logger().warn("No se recibió pose final; usando (0,0) para pf")
+
+            self.real_positions.append((x, y))  # Este es pf
+            self.print_and_save_errors()
             rclpy.shutdown()
             return
 
         self.publisher.publish(twist)
+
+    def print_and_save_errors(self):
+        def fmt(val):
+            return 0.0 if abs(val) < 0.005 else round(val, 2)
+
+        lines = ["\nTabla de Errores (d_error en metros):\n"]
+        lines.append("{:<4} {:>12} {:>18} {:>10}".format("Punto", "Objetivo", "Posición real", "Error"))
+
+        for i in range(4):
+            px, py = self.target_points[i]
+            rx, ry = self.real_positions[i]
+            err = np.sqrt((rx - px)**2 + (ry - py)**2)
+            lines.append(f"p{i+1:<3} ({px:5.1f},{py:5.1f})  ({fmt(rx):8.2f},{fmt(ry):8.2f})   {err:8.3f}")
+
+        rx_last, ry_last = self.real_positions[4]
+        err_pf = np.sqrt((rx_last - 0.0)**2 + (ry_last - 0.0)**2)
+        lines.append(f"pf   (  0.0,  0.0)  ({fmt(rx_last):8.2f},{fmt(ry_last):8.2f})   {err_pf:8.3f}")
+
+        lines.append("")
+        result = "\n".join(lines)
+        with open("errors.txt", "w") as f:
+            f.write(result)
+
+        self.get_logger().info(result)
 
 
 def main(args=None):

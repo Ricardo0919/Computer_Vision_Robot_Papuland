@@ -3,10 +3,10 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
 
-    Controller = Node(
-        name="Controller",
+    ControllerOdometry = Node(
+        name="ControllerOdometry",
         package='puzzlebot_minichallenge2',
-        executable='Controller',
+        executable='ControllerOdometry',
         emulate_tty=True,
         output='screen',
         parameters=[
@@ -25,6 +25,6 @@ def generate_launch_description():
     )
 
     # Definir la descripción de lanzamiento con todos los nodos configurados
-    l_d = LaunchDescription([Controller, rqt_graph])
+    l_d = LaunchDescription([ControllerOdometry, rqt_graph])
 
     return l_d  # Retornar la descripción de lanzamiento

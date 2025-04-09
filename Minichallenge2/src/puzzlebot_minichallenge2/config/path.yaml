@@ -4,9 +4,9 @@ target: 30  # segundos (si es "time") o m/s (si es "speed")
 
 # Puntos de la ruta (coordenadas X y Y en metros)
 waypoints:
-  - {x: 2.0, y: 0.0}
-  - {x: 2.0, y: 2.0}
-  - {x: 0.0, y: 2.0}
+  - {x: 1.0, y: 0.0}
+  - {x: 1.0, y: 1.0}
+  - {x: 0.0, y: 1.0}
   - {x: 0.0, y: 0.0}
 
 #waypoints:
