@@ -1,6 +1,6 @@
 # Tipo de definición de ruta "time" o "speed"
 path_type: time  
-target: 30  # segundos (si es "time") o m/s (si es "speed")
+target: 40  # segundos (si es "time") o m/s (si es "speed")
 
 # Puntos de la ruta (coordenadas X y Y en metros)
 waypoints:
