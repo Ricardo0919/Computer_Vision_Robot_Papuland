@@ -12,8 +12,8 @@ class GroundTruthPublisher(Node):
         super().__init__('ground_truth_publisher')
 
         # Parámetros físicos
-        self.L = 0.191  # distancia entre ruedas
-        self.K = 0.048   # factor para escalar velocidad si es necesario
+        self.L = 0.16  # distancia entre ruedas
+        self.K = 0.0552   # factor para escalar velocidad si es necesario
 
         # Estado
         self.x = 0.0
@@ -26,7 +26,6 @@ class GroundTruthPublisher(Node):
         # Guardamos el tiempo inicial
         self.last_time = self.get_clock().now()
 
-        # Creamos un perfil de QoS para las suscripciones con RELIABILITY = BEST_EFFORT
         qos_profile = QoSProfile(depth=10)
         qos_profile.reliability = QoSReliabilityPolicy.BEST_EFFORT
 
@@ -44,11 +43,11 @@ class GroundTruthPublisher(Node):
 
     def left_cb(self, msg):
         self.vl = msg.data * self.K
-        self.get_logger().info(f"[left_cb] Recibido vl= {msg.data:.3f}, escalada= {self.vl:.3f}")
+        #self.get_logger().info(f"[left_cb] Recibido vl= {msg.data:.3f}, escalada= {self.vl:.3f}")
 
     def right_cb(self, msg):
         self.vr = msg.data * self.K
-        self.get_logger().info(f"[right_cb] Recibido vr= {msg.data:.3f}, escalada= {self.vr:.3f}")
+        #self.get_logger().info(f"[right_cb] Recibido vr= {msg.data:.3f}, escalada= {self.vr:.3f}")
 
     def timer_callback(self):
         now = self.get_clock().now()
