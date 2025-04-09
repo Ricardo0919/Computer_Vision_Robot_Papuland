@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy  # <-- Importar QoS
 from std_msgs.msg import Float32
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Point, Quaternion, Twist, Vector3
@@ -11,7 +12,7 @@ class GroundTruthPublisher(Node):
         super().__init__('ground_truth_publisher')
 
         # Parámetros físicos
-        self.L = 0.19  # distancia entre ruedas
+        self.L = 0.184  # distancia entre ruedas
         self.K = 1.0   # factor para escalar velocidad si es necesario
 
         # Estado
@@ -21,16 +22,24 @@ class GroundTruthPublisher(Node):
 
         self.vl = 0.0
         self.vr = 0.0
+
+        # Guardamos el tiempo inicial
         self.last_time = self.get_clock().now()
 
-        # Subscripciones
-        self.create_subscription(Float32, '/VelocityEncL', self.left_cb, 10)
-        self.create_subscription(Float32, '/VelocityEncR', self.right_cb, 10)
+        # Creamos un perfil de QoS para las suscripciones con RELIABILITY = BEST_EFFORT
+        qos_profile = QoSProfile(depth=10)
+        qos_profile.reliability = QoSReliabilityPolicy.BEST_EFFORT
 
-        # Publicador en /ground_truth
+        # Subscripciones
+        self.create_subscription(Float32, '/VelocityEncL', self.left_cb, qos_profile)
+        self.create_subscription(Float32, '/VelocityEncR', self.right_cb, qos_profile)
+
+        # Publicador en /ground_truth (aquí podemos dejarlo con QoS por defecto)
         self.pub = self.create_publisher(Odometry, '/ground_truth', 10)
 
-        self.timer = self.create_timer(0.05, self.timer_callback)  # 20 Hz
+        # Timer a 20 Hz
+        self.timer = self.create_timer(0.05, self.timer_callback)
+
         self.get_logger().info("Nodo ground_truth iniciado.")
 
     def left_cb(self, msg):
@@ -47,7 +56,7 @@ class GroundTruthPublisher(Node):
         self.last_time = now
 
         # Cinemática diferencial
-        v = (self.vr + self.vl) / 2
+        v = (self.vr + self.vl) / 2.0
         w = (self.vr - self.vl) / self.L
 
         dx = v * np.cos(self.theta) * dt
@@ -58,20 +67,24 @@ class GroundTruthPublisher(Node):
         self.y += dy
         self.theta += dtheta
 
-        # Publicar odometría en /ground_truth
+        # Construir mensaje Odometry
         odom = Odometry()
         odom.header.stamp = now.to_msg()
         odom.header.frame_id = "ground_truth"
         odom.child_frame_id = "base_link"
 
+        # Pose
         odom.pose.pose.position = Point(x=self.x, y=self.y, z=0.0)
         q = self.quaternion_from_euler(0.0, 0.0, self.theta)
         odom.pose.pose.orientation = Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
+
+        # Twist
         odom.twist.twist = Twist(
             linear=Vector3(x=v, y=0.0, z=0.0),
             angular=Vector3(x=0.0, y=0.0, z=w)
         )
 
+        # Publicar en /ground_truth
         self.pub.publish(odom)
 
     def quaternion_from_euler(self, roll, pitch, yaw):
