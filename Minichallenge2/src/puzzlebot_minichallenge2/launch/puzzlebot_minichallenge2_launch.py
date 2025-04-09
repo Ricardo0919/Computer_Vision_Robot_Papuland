@@ -9,7 +9,14 @@ def generate_launch_description():
         package='puzzlebot_minichallenge2',
         executable='Controller',
         emulate_tty=True,
-        output='screen'
+        output='screen',
+        parameters=[
+            {'use_sim_time': True},
+            {'mode': 'time'},
+            {'total_time': 30.0},
+            {'side_length': 2.0}
+        ]
+        
     )
     
     # Nodo para mostrar el grafo de nodos de ROS en rqt_graph
