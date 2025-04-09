@@ -16,7 +16,7 @@ def generate_launch_description():
         emulate_tty=True,
         output='screen',
         parameters=[
-            {'use_sim_time': True},
+            {'use_sim_time': False},
             {'config_file': config_path}
         ]
     )
@@ -29,7 +29,7 @@ def generate_launch_description():
         emulate_tty=True,
         output='screen',
         parameters=[
-            {'use_sim_time': True}
+            {'use_sim_time': False}
         ]
     )
 
