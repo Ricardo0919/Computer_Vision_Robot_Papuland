@@ -15,7 +15,6 @@ class SquareController(Node):
         self.declare_parameter('mode', 'time')  # 'speed' o 'time'
         self.declare_parameter('linear_speed', 0.2)
         self.declare_parameter('total_time', 30.0)
-        self.declare_parameter('turn_direction', 'right')  # Nuevo parámetro
 
         self.get_params()
 
@@ -45,15 +44,9 @@ class SquareController(Node):
         self.mode = self.get_parameter('mode').value.lower().strip()
         self.linear_speed = self.get_parameter('linear_speed').value
         self.total_time = self.get_parameter('total_time').value
-        self.turn_direction = self.get_parameter('turn_direction').value.lower().strip()
 
         if self.mode not in ['speed', 'time']:
-            self.get_logger().error(f"Modo inválido: '{self.mode}'. Debe ser 'speed' o 'time'.")
-            rclpy.shutdown()
-            return
-
-        if self.turn_direction not in ['left', 'right']:
-            self.get_logger().error(f"Dirección inválida: '{self.turn_direction}'. Usa 'left' o 'right'.")
+            self.get_logger().error(f"Modo inválido: '{self.mode}'. Debe ser 'speed' o 'time'. Terminando el nodo.")
             rclpy.shutdown()
             return
 
@@ -73,8 +66,7 @@ class SquareController(Node):
 
         self.get_logger().info(
             f"[PARAMS] mode={self.mode} | total_time={self.total_time:.2f} s | "
-            f"velocidad lineal={self.linear_speed:.2f} m/s | velocidad angular={self.angular_speed:.2f} rad/s | "
-            f"dirección de giro: {self.turn_direction}"
+            f"velocidad lineal={self.linear_speed:.2f} m/s | velocidad angular={self.angular_speed:.2f} rad/s"
         )
 
     def calculate_error(self, target):
@@ -126,13 +118,12 @@ class SquareController(Node):
                     self.errors.append(error)
                     self.get_logger().info(f"Lado {self.count+1} completado. Error = {error:.3f} m")
                 else:
-                    self.errors.append(-1)
+                    self.errors.append(-1)  # sin datos
                 self.get_logger().info(f"Iniciando giro {self.count+1}...")
 
         elif self.state == 'TURN':
             if elapsed < self.t_turn:
-                direction = 1.0 if self.turn_direction == 'left' else -1.0
-                twist.angular.z = direction * self.angular_speed
+                twist.angular.z = self.angular_speed
             else:
                 self.count += 1
                 if self.count >= 4:

@@ -3,7 +3,6 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
 
-    # Nodo 1 generador de puntos de referencia para el motor
     Controller = Node(
         name="Controller",
         package='puzzlebot_minichallenge2',
@@ -16,8 +15,7 @@ def generate_launch_description():
             {'mode': 'time'},
             {'total_time': 30.0},
             {'side_length': 2.0}
-        ]
-        
+        ]  
     )
     
     # Nodo para mostrar el grafo de nodos de ROS en rqt_graph

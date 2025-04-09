@@ -24,6 +24,7 @@ setup(
     entry_points={
         'console_scripts': [
             'Controller = puzzlebot_minichallenge2.Controller:main',
+            'ground_truth_node = puzzlebot_minichallenge2.ground_truth_node:main',
         ],
     },
 )
