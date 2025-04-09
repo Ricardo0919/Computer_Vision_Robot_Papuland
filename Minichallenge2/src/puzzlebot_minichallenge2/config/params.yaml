@@ -1,0 +1,13 @@
+path_generator:
+  ros__parameters:
+    path_type: "points"  # "points", "velocities" o "time"
+    max_linear_speed: 0.3
+    max_angular_speed: 0.5
+    points:
+      - {x: 0.0, y: 0.0}
+      - {x: 2.0, y: 0.0}
+      - {x: 2.0, y: 2.0}
+      - {x: 0.0, y: 2.0}
+      - {x: 0.0, y: 0.0}
+    velocities: [0.2, 0.3, 0.2]  # Ejemplo para modo velocidades
+    times: [10.0, 15.0, 10.0]    # Ejemplo para modo tiempo
