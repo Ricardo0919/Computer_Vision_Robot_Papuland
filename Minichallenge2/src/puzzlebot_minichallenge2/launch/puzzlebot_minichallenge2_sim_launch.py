@@ -12,7 +12,7 @@ def generate_launch_description():
         parameters=[
             {'use_sim_time': True},
             {'mode': 'time'},
-            {'total_time': 30.0},
+            {'total_time': 90.0},
             {'side_length': 2.0}
         ]  
     )

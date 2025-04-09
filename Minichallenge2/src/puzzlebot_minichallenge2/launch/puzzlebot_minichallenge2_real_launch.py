@@ -28,6 +28,6 @@ def generate_launch_description():
     )
 
     # Definir la descripción de lanzamiento con todos los nodos configurados
-    l_d = LaunchDescription([Controller, ground_truth_node])
+    l_d = LaunchDescription([ground_truth_node, Controller])
 
     return l_d  # Retornar la descripción de lanzamiento
