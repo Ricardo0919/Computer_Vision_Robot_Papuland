@@ -10,29 +10,25 @@ class Controller(Node):
     def __init__(self):
         super().__init__('square_controller')
 
-        # Parámetros configurables por el usuario
         self.declare_parameter('side_length', 2.0)
-        self.declare_parameter('mode', 'time')  # 'speed' o 'time'
+        self.declare_parameter('mode', 'time')
         self.declare_parameter('linear_speed', 0.2)
         self.declare_parameter('total_time', 30.0)
 
         self.get_params()
 
-        # Comunicación
         self.publisher = self.create_publisher(Twist, '/cmd_vel', 10)
         self.pose_sub = self.create_subscription(Odometry, '/ground_truth', self.pose_callback, 10)
 
-        # Estados
-        self.timer = self.create_timer(0.1, self.loop)  # 10 Hz
+        self.timer = self.create_timer(0.1, self.loop)
         self.state = 'START'
         self.count = 0
         self.t_start = time.time()
 
-        # Datos de posición
         self.current_pose = None
         s = self.side_length
         self.target_points = [(0, 0), (s, 0), (s, s), (0, s)]
-        self.errors = []
+        self.real_positions = []
 
         self.get_logger().info('SquareController iniciado.')
 
@@ -46,7 +42,7 @@ class Controller(Node):
         self.total_time = self.get_parameter('total_time').value
 
         if self.mode not in ['speed', 'time']:
-            self.get_logger().error(f"Modo inválido: '{self.mode}'. Debe ser 'speed' o 'time'. Terminando el nodo.")
+            self.get_logger().error(f"Modo inválido: '{self.mode}'. Debe ser 'speed' o 'time'.")
             rclpy.shutdown()
             return
 
@@ -69,33 +65,6 @@ class Controller(Node):
             f"velocidad lineal={self.linear_speed:.2f} m/s | velocidad angular={self.angular_speed:.2f} rad/s"
         )
 
-    def calculate_error(self, target):
-        if self.current_pose is None:
-            self.get_logger().warn('No se recibió pose aún, error no calculado.')
-            return None
-
-        x_real = self.current_pose.position.x
-        y_real = self.current_pose.position.y
-        x_target, y_target = target
-        error = math.sqrt((x_real - x_target) ** 2 + (y_real - y_target) ** 2)
-        return error
-
-    def save_errors_to_txt(self):
-        lines = ["\nTabla de Errores (d_error en metros):\n"]
-        lines.append("{:<5} {:>10} {:>10}".format("Punto", "Objetivo", "Error"))
-        for i, error in enumerate(self.errors):
-            pt = f"p{i+1}"
-            target = self.target_points[i]
-            lines.append("{:<5} ({:>4.1f}, {:>4.1f}) {:>10.3f}".format(pt, target[0], target[1], error))
-        lines.append("")
-        result = "\n".join(lines)
-
-        with open("errors.txt", "w") as f:
-            f.write(result)
-
-        self.get_logger().info("Tabla de errores guardada en 'errors.txt'.")
-        self.get_logger().info("\n" + result)
-
     def loop(self):
         now = time.time()
         elapsed = now - self.t_start
@@ -103,7 +72,16 @@ class Controller(Node):
         twist = Twist()
 
         if self.state == 'START':
-            self.get_logger().info('Empezando recorrido en cuadrado...')
+            if self.current_pose is not None:
+                x0 = self.current_pose.position.x
+                y0 = self.current_pose.position.y
+            else:
+                x0, y0 = (0.0, 0.0)
+                self.get_logger().warn("No se recibió pose; usando (0,0) para p1")
+
+            self.real_positions.append((x0, y0))
+            self.get_logger().info(f"Posición inicial (p1): ({x0:.2f}, {y0:.2f})")
+
             self.state = 'STRAIGHT'
             self.t_start = now
 
@@ -113,33 +91,71 @@ class Controller(Node):
             else:
                 self.state = 'TURN'
                 self.t_start = now
-                error = self.calculate_error(self.target_points[self.count])
-                if error is not None:
-                    self.errors.append(error)
-                    self.get_logger().info(f"Lado {self.count+1} completado. Error = {error:.3f} m")
+
+                if self.current_pose:
+                    x = self.current_pose.position.x
+                    y = self.current_pose.position.y
                 else:
-                    self.errors.append(-1)  # sin datos
-                self.get_logger().info(f"Iniciando giro {self.count+1}...")
+                    x, y = (0.0, 0.0)
+                    self.get_logger().warn("No se recibió pose al terminar lado; usando (0,0)")
+
+                self.real_positions.append((x, y))
+                self.count += 1
+                self.get_logger().info(f"Lado {self.count} completado en ({x:.2f}, {y:.2f})")
 
         elif self.state == 'TURN':
             if elapsed < self.t_turn:
                 twist.angular.z = self.angular_speed
             else:
-                self.count += 1
                 if self.count >= 4:
                     self.state = 'STOP'
-                    self.get_logger().info('Trayectoria cuadrada completada.')
+                    self.get_logger().info("Trayectoria cuadrada completada.")
                 else:
                     self.state = 'STRAIGHT'
-                    self.t_start = now
+                self.t_start = now
 
         elif self.state == 'STOP':
             self.publisher.publish(Twist())
-            self.save_errors_to_txt()
+
+            # Agregar punto final
+            if self.current_pose:
+                x = self.current_pose.position.x
+                y = self.current_pose.position.y
+            else:
+                x, y = (0.0, 0.0)
+                self.get_logger().warn("No se recibió pose final; usando (0,0) para pf")
+
+            self.real_positions.append((x, y))  # Este es pf
+            self.print_and_save_errors()
             rclpy.shutdown()
             return
 
         self.publisher.publish(twist)
+
+    def print_and_save_errors(self):
+        def fmt(val):
+            return 0.0 if abs(val) < 0.005 else round(val, 2)
+
+        lines = ["\nTabla de Errores (d_error en metros):\n"]
+        lines.append("{:<4} {:>12} {:>18} {:>10}".format("Punto", "Objetivo", "Posición real", "Error"))
+
+        for i in range(4):
+            px, py = self.target_points[i]
+            rx, ry = self.real_positions[i]
+            err = math.sqrt((rx - px)**2 + (ry - py)**2)
+            lines.append(f"p{i+1:<3} ({px:5.1f},{py:5.1f})  ({fmt(rx):8.2f},{fmt(ry):8.2f})   {err:8.3f}")
+
+        rx_last, ry_last = self.real_positions[4]
+        err_pf = math.sqrt((rx_last - 0.0)**2 + (ry_last - 0.0)**2)
+        lines.append(f"pf   (  0.0,  0.0)  ({fmt(rx_last):8.2f},{fmt(ry_last):8.2f})   {err_pf:8.3f}")
+
+        lines.append("")
+        result = "\n".join(lines)
+        with open("errors.txt", "w") as f:
+            f.write(result)
+
+        self.get_logger().info(result)
+
 
 def main(args=None):
     rclpy.init(args=args)
