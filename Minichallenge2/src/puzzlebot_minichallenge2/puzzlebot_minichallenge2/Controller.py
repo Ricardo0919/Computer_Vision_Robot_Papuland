@@ -12,9 +12,9 @@ class SquareController(Node):
 
         # Parámetros configurables por el usuario
         self.declare_parameter('side_length', 2.0)
-        self.declare_parameter('mode', 'speed')  # 'speed' o 'time'
+        self.declare_parameter('mode', 'time')  # 'speed' o 'time'
         self.declare_parameter('linear_speed', 0.2)
-        self.declare_parameter('total_time', 40.0)
+        self.declare_parameter('total_time', 30.0)
 
         self.get_params()
 
