@@ -1,8 +1,7 @@
 # Tipo de definición de ruta "time" o "speed"
 path_type: time  
-target: 60  # segundos (si es "time") o m/s (si es "speed")
-#target: 40
 
+#target: 40 # segundos (si es "time") o m/s (si es "speed")
 # Puntos de la ruta (coordenadas X y Y en metros)
 #waypoints:
 #  - {x: 1.0, y: 0.0}
@@ -10,8 +9,21 @@ target: 60  # segundos (si es "time") o m/s (si es "speed")
 #  - {x: 0.0, y: 1.0}
 #  - {x: 0.0, y: 0.0}
 
+#target: 60  # segundos (si es "time") o m/s (si es "speed")
+# Puntos de la ruta (coordenadas X y Y en metros)
+#waypoints:
+#  - {x: 1.0, y: 1.0}
+#  - {x: 1.0, y: 0.3}
+#  - {x: 0.5, y: 0.3}
+#  - {x: 0.7, y: 1.2}
+
+#Ejemplo de error
+#path_type: time
+target: 3  # segundos
+
 waypoints:
-  - {x: 1.0, y: 1.0}
-  - {x: 1.0, y: 0.3}
-  - {x: 0.5, y: 0.3}
-  - {x: 0.7, y: 1.2}
+  - {x: 0.0, y: 0.0}
+  - {x: 1.5, y: 0.0}
+  - {x: 1.5, y: 1.5}
+  - {x: 0.0, y: 1.5}
+  - {x: 0.0, y: 0.0}
