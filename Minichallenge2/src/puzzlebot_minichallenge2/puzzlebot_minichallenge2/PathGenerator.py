@@ -27,8 +27,8 @@ class PathGenerator(Node):
         self.waypoints = config.get('waypoints', [])
 
         # Límites físicos del robot
-        self.max_linear_speed = 0.3  # m/s
-        self.max_angular_speed = 0.6  # rad/s
+        self.max_linear_speed = 0.8  # m/s
+        self.max_angular_speed = 6.0 # rad/s
 
         if not self.waypoints or (self.waypoints[0]['x'] != 0.0 or self.waypoints[0]['y'] != 0.0):
             self.get_logger().info("Insertando (0,0) al inicio por defecto.")
