@@ -41,6 +41,6 @@ def generate_launch_description():
     )
 
     # Launch Description
-    l_d = LaunchDescription([PathGenerator, PathController, rqt_graph])
+    l_d = LaunchDescription([PathGenerator, PathController])
 
     return l_d

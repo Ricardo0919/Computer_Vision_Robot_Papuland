@@ -43,26 +43,23 @@ class PathGenerator(Node):
             )
             msg.pose.orientation = Quaternion(w=1.0)
 
-            # Copiamos el target, y el controlador decide qué hacer
             if self.path_type == 'time':
-                msg.time_to_reach = self.target
+                msg.time_to_reach = self.target if i == 0 else 0.0
                 msg.linear_velocity = 0.0
             else:  # speed
                 msg.time_to_reach = 0.0
-                msg.linear_velocity = self.target
+                msg.linear_velocity = self.target if i == 0 else 0.0
 
             msg.angular_velocity = 0.0
             msg.is_reachable = True
 
             self.get_logger().info(f"📤 Publicando punto {i+1}: {msg}")
             self.publisher_.publish(msg)
-            self.create_timer(1.0, lambda: None)
 
 def main(args=None):
     rclpy.init(args=args)
     node = PathGenerator()
     rclpy.spin(node)
-    node.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
