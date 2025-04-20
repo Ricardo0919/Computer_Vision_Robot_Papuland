@@ -31,4 +31,3 @@ cmake-build-*/
 # Carpetas específicas del proyecto
 puzzlebot_description/
 puzzlebot_gazebo/
-mobile_robotics/
