@@ -23,9 +23,12 @@ class OdometryNode(Node):
         self._l = 0.19   # Distancia entre ruedas
         self._r = 0.0505 # Radio de rueda
 
-        # Factores de corrección
-        self._angular_correction_factor = 0.90
-        self._linear_correction_factor = 0.92
+        # Declarar parámetros
+        self.declare_parameter('angular_correction_factor', 0.90)
+        self.declare_parameter('linear_correction_factor', 0.92)
+
+        self._angular_correction_factor = self.get_parameter('angular_correction_factor').value
+        self._linear_correction_factor = self.get_parameter('linear_correction_factor').value
 
         # Otros parámetros
         self._sample_time = 0.01

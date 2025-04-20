@@ -15,7 +15,10 @@ setup(
         (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*launch.[pxy][yma]*'))),
         (os.path.join('share', package_name, 'config'), glob(os.path.join('config', '*.[yma]*'))),
     ],
-    install_requires=['setuptools'],
+    install_requires=[
+        'setuptools',
+        'transforms3d',
+    ],
     zip_safe=True,
     maintainer='ricardosierra',
     maintainer_email='rickisierra03@gmail.com',

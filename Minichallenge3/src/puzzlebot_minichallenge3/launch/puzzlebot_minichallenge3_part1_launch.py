@@ -9,7 +9,11 @@ def generate_launch_description():
         executable='OdometryNode', 
         name='OdometryNode',
         output='screen',
-        emulate_tty=True
+        emulate_tty=True,
+        parameters=[
+            {'angular_correction_factor': 0.90},
+            {'linear_correction_factor': 0.92}
+        ]
     )
 
     # Nodo controlador PID
@@ -20,7 +24,7 @@ def generate_launch_description():
         output='screen',
         emulate_tty=True,
         parameters=[
-            {'side_length': 2.0}
+            {'side_length': 1.0}
         ]
     )
     
