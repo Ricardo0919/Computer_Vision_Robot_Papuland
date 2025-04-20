@@ -1,159 +1,107 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry
 from custom_interfaces.msg import PathPose
+from rclpy.qos import qos_profile_sensor_data
 import numpy as np
-import time
-import math
-
-def angle_diff(a, b):
-    """Diferencia angular normalizada en [-π, π]"""
-    diff = a - b
-    while diff > math.pi:
-        diff -= 2 * math.pi
-    while diff < -math.pi:
-        diff += 2 * math.pi
-    return diff
 
 class PathController(Node):
     def __init__(self):
-        super().__init__('path_controller')
+        super().__init__('PathController')
 
+        self.pose_sub = self.create_subscription(PathPose, '/goals', self.path_callback, 10)
+        self.odom_sub = self.create_subscription(Odometry, '/odom', self.odom_callback, qos_profile_sensor_data)
         self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
-        self.pose_sub = self.create_subscription(PathPose, '/pose', self.pose_callback, 10)
 
         self.points = []
-        self.mode = None
-        self.total_time = 0.0
-        self.speed_param = 0.0
+        self.target_index = 0
+        self.goal_threshold = 0.08
+        self.finished = False
 
-        self.state = 'WAITING'
-        self.current_segment = 0
-        self.start_time = None
+        self.kp_lin = 1.0
+        self.kd_lin = 0.1
+        self.kp_ang = 4.0
+        self.kd_ang = 0.3
 
-        self.base_ang_speed = 0.3  # rad/s
-        self.timer_period = 0.05
-        self.timer = self.create_timer(self.timer_period, self.control_loop)
+        self.prev_lin_error = 0.0
+        self.prev_ang_error = 0.0
+        self.prev_time = self.get_clock().now()
 
-        self.angles_signo = []
-        self.angles_magnitude = []
-        self.distances = []
-        self.turn_times = []
-        self.forward_times = []
-        self.lin_speeds = []
-        self.num_segments = 0
+        self.get_logger().info("🧭 PathController PID activado")
 
-        self.get_logger().info("🧭 PathController iniciado con control_loop cada 0.05s")
-
-    def pose_callback(self, msg):
-        if self.mode is None:
-            if msg.time_to_reach > 0:
-                self.mode = 'time'
-                self.total_time = msg.time_to_reach
-                self.get_logger().info(f"⏱ Modo TIME => {self.total_time:.2f}s total")
-            else:
-                self.mode = 'speed'
-                self.speed_param = msg.linear_velocity
-                self.get_logger().info(f"🏎 Modo SPEED => {self.speed_param:.2f} m/s")
-
+    def path_callback(self, msg):
         x = msg.pose.position.x
         y = msg.pose.position.y
         self.points.append((x, y))
-        self.get_logger().info(f"➕ Recibido punto {len(self.points)}: ({x:.2f}, {y:.2f})")
+        self.get_logger().info(f"➕ Añadido punto: ({x:.2f}, {y:.2f})")
 
-    def setup_trajectory(self):
-        self.num_segments = len(self.points) - 1
-        angles = []
-        distances = []
+    def odom_callback(self, msg):
+        if self.finished or self.target_index >= len(self.points):
+            return
 
-        for i in range(self.num_segments):
-            p1 = np.array(self.points[i])
-            p2 = np.array(self.points[i + 1])
-            diff = p2 - p1
-            distance = np.linalg.norm(diff)
-            angle = math.atan2(diff[1], diff[0])
-            distances.append(distance)
-            angles.append(angle)
+        x = msg.pose.pose.position.x
+        y = msg.pose.pose.position.y
+        q = msg.pose.pose.orientation
+        _, _, theta = self.euler_from_quaternion(q.x, q.y, q.z, q.w)
 
-        self.distances = distances
+        goal_x, goal_y = self.points[self.target_index]
+        dx = goal_x - x
+        dy = goal_y - y
+        distance = np.hypot(dx, dy)
+        target_theta = np.arctan2(dy, dx)
+        ang_error = self.normalize_angle(target_theta - theta)
 
-        self.angles_magnitude = []
-        self.angles_signo = []
-        for i in range(self.num_segments):
-            if i == 0:
-                delta = angles[0]  # Desde orientación inicial (0 rad)
-            else:
-                delta = angle_diff(angles[i], angles[i - 1])
-            self.angles_magnitude.append(abs(delta))
-            self.angles_signo.append(np.sign(delta))
+        now = self.get_clock().now()
+        dt = (now - self.prev_time).nanoseconds * 1e-9
+        self.prev_time = now
 
-        total_dist = sum(distances)
-        total_turn_time = sum([a / self.base_ang_speed for a in self.angles_magnitude])
-        remaining_time = max(self.total_time - total_turn_time, 0.01)
+        lin_error = distance if abs(ang_error) < 0.3 else 0.0
+        der_lin = (lin_error - self.prev_lin_error) / dt if dt > 0 else 0.0
+        self.prev_lin_error = lin_error
+        v = self.kp_lin * lin_error + self.kd_lin * der_lin
 
-        self.forward_times = [remaining_time * (d / total_dist) if total_dist > 0 else 0.0 for d in distances]
-        self.turn_times = [a / self.base_ang_speed for a in self.angles_magnitude]
-        self.lin_speeds = [d / t if t > 0 else 0.0 for d, t in zip(distances, self.forward_times)]
+        der_ang = (ang_error - self.prev_ang_error) / dt if dt > 0 else 0.0
+        self.prev_ang_error = ang_error
+        w = self.kp_ang * ang_error + self.kd_ang * der_ang
 
-        self.get_logger().info("🛠 Trayectoria configurada")
-        for i in range(self.num_segments):
-            self.get_logger().info(f"Tramo {i+1}: {distances[i]:.2f} m, giro {self.angles_magnitude[i]:.2f} rad, t_giro {self.turn_times[i]:.2f}s, t_avance {self.forward_times[i]:.2f}s")
+        cmd = Twist()
+        cmd.linear.x = np.clip(v, -0.3, 0.3)
+        cmd.angular.z = np.clip(w, -1.5, 1.5)
 
-    def stop_robot(self):
-        twist = Twist()
-        self.cmd_pub.publish(twist)
-
-    def control_loop(self):
-        now = time.time()
-
-        if self.state == 'WAITING':
-            if len(self.points) >= 2 and self.mode == 'time':
-                self.setup_trajectory()
-                self.current_segment = 0
-                self.state = 'TURN'
-                self.start_time = now
-
-        elif self.state == 'TURN':
-            if self.current_segment >= self.num_segments:
-                self.stop_robot()
-                self.state = 'DONE'
-                self.get_logger().info("🏁 Ruta completada")
+        if distance < self.goal_threshold:
+            self.get_logger().info(f"✅ Punto {self.target_index + 1} alcanzado")
+            self.target_index += 1
+            if self.target_index >= len(self.points):
+                self.finished = True
+                self.get_logger().info("🎯 Ruta completada")
+                self.cmd_pub.publish(Twist())
                 return
 
-            turn_t = self.turn_times[self.current_segment]
-            elapsed = now - self.start_time
+        self.cmd_pub.publish(cmd)
 
-            if elapsed < turn_t:
-                twist = Twist()
-                twist.angular.z = self.angles_signo[self.current_segment] * self.base_ang_speed
-                self.cmd_pub.publish(twist)
-            else:
-                self.stop_robot()
-                self.start_time = now
-                self.state = 'FORWARD'
+    def normalize_angle(self, angle):
+        return np.arctan2(np.sin(angle), np.cos(angle))
 
-        elif self.state == 'FORWARD':
-            forward_t = self.forward_times[self.current_segment]
-            elapsed = now - self.start_time
+    def euler_from_quaternion(self, x, y, z, w):
+        t0 = +2.0 * (w * x + y * z)
+        t1 = +1.0 - 2.0 * (x * x + y * y)
+        roll = np.arctan2(t0, t1)
 
-            if elapsed < forward_t:
-                twist = Twist()
-                twist.linear.x = self.lin_speeds[self.current_segment]
-                self.cmd_pub.publish(twist)
-            else:
-                self.stop_robot()
-                self.current_segment += 1
-                self.state = 'TURN'
-                self.start_time = now
+        t2 = +2.0 * (w * y - z * x)
+        t2 = np.clip(t2, -1.0, 1.0)
+        pitch = np.arcsin(t2)
 
-        elif self.state == 'DONE':
-            self.stop_robot()
+        t3 = +2.0 * (w * z + x * y)
+        t4 = +1.0 - 2.0 * (y * y + z * z)
+        yaw = np.arctan2(t3, t4)
+
+        return roll, pitch, yaw
+
 
 def main(args=None):
     rclpy.init(args=args)
     node = PathController()
     rclpy.spin(node)
+    node.destroy_node()
     rclpy.shutdown()
-
-if __name__ == '__main__':
-    main()

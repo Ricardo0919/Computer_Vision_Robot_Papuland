@@ -1,29 +1,40 @@
-# Tipo de definición de ruta "time 1" o "speed"
-
-#Ejemplo 1 de ruta con tiempo 
-#path_type: time  
-#target: 40 # segundos (si es "time") o m/s (si es "speed")
+#Ejemplo 1 de ruta con tiempo - cuadrado de 1x1 metros
 # Puntos de la ruta (coordenadas X y Y en metros)
 #waypoints:
+#  - {x: 0.0, y: 0.0}
 #  - {x: 1.0, y: 0.0}
 #  - {x: 1.0, y: 1.0}
 #  - {x: 0.0, y: 1.0}
 #  - {x: 0.0, y: 0.0}
 
-#Ejemplo 2 de ruta con tiempo
-path_type: time
-target: 60  # segundos (si es "time") o m/s (si es "speed")
+#Ejemplo 2 de ruta con tiempo - cuadrado de 2x2 metros
+# Puntos de la ruta (coordenadas X y Y en metros)
+#waypoints:
+#  - {x: 0.0, y: 0.0}
+#  - {x: 2.0, y: 0.0}
+#  - {x: 2.0, y: 2.0}
+#  - {x: 0.0, y: 2.0}
+#  - {x: 0.0, y: 0.0}
+
+#Ejemplo 3 de ruta con tiempo
+# Puntos de la ruta (coordenadas X y Y en metros)
+#waypoints:
+#  - {x: 1.0, y: 1.0}
+#  - {x: 1.0, y: 0.3}
+#  - {x: 0.5, y: 0.3}
+#  - {x: 0.7, y: 1.2}
+
+#Ejemplo 4 de ruta con tiempo - forma reloj de arena
 # Puntos de la ruta (coordenadas X y Y en metros)
 waypoints:
+  - {x: 0.0, y: 0.0}
+  - {x: 1.0, y: 0.0}
+  - {x: 0.0, y: 1.0}
   - {x: 1.0, y: 1.0}
-  - {x: 1.0, y: 0.3}
-  - {x: 0.5, y: 0.3}
-  - {x: 0.7, y: 1.2}
+  - {x: 0.0, y: 0.0}
+
 
 #Ejemplo de error
-#path_type: time
-#target: 3  # segundos
-
 #waypoints:
 #  - {x: 0.0, y: 0.0}
 #  - {x: 1.5, y: 0.0}

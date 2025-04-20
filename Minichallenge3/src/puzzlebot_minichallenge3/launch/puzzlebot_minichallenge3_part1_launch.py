@@ -4,7 +4,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     
     # Nodo de odometría
-    OdometryNode = Node(
+    OdometryNodeSim = Node(
         package='puzzlebot_minichallenge3',
         executable='OdometryNode', 
         name='OdometryNode',
@@ -13,6 +13,19 @@ def generate_launch_description():
         parameters=[
             {'angular_correction_factor': 0.90},
             {'linear_correction_factor': 0.92}
+        ]
+    )
+
+    # Nodo de odometría
+    OdometryNodeReal = Node(
+        package='puzzlebot_minichallenge3',
+        executable='OdometryNode', 
+        name='OdometryNode',
+        output='screen',
+        emulate_tty=True,
+        parameters=[
+            {'angular_correction_factor': 1.01},
+            {'linear_correction_factor': 0.88}
         ]
     )
 
@@ -28,6 +41,6 @@ def generate_launch_description():
         ]
     )
     
-    ld_description = LaunchDescription([OdometryNode, Controller])
+    ld_description = LaunchDescription([OdometryNodeReal, Controller])
 
     return ld_description

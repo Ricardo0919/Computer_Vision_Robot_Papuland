@@ -8,29 +8,51 @@ def generate_launch_description():
     pkg_dir = get_package_share_directory('puzzlebot_minichallenge3')
     config_path = os.path.join(pkg_dir, 'config', 'path.yaml')
 
-    # Nodo Path Generator
-    PathGenerator = Node(
-        name="PathGenerator",
+    # Nodo de Odometría con parámetros ajustables
+    OdometryNodeSim = Node(
+        name='OdometryNode',
         package='puzzlebot_minichallenge3',
-        executable='PathGenerator',  # nombre definido en entry_points
+        executable='OdometryNode',
         emulate_tty=True,
         output='screen',
         parameters=[
-            {'use_sim_time': False},
+            {'angular_correction_factor': 0.90},
+            {'linear_correction_factor': 0.92}
+        ]
+    )
+
+    # Nodo de Odometría con parámetros ajustables
+    OdometryNodeReal = Node(
+        name='OdometryNode',
+        package='puzzlebot_minichallenge3',
+        executable='OdometryNode',
+        emulate_tty=True,
+        output='screen',
+        parameters=[
+            {'angular_correction_factor': 1.01},
+            {'linear_correction_factor': 0.88}
+        ]
+    )
+
+    # Nodo PathGenerator (publica la trayectoria)
+    PathGenerator = Node(
+        name="PathGenerator",
+        package='puzzlebot_minichallenge3',
+        executable='PathGenerator',
+        emulate_tty=True,
+        output='screen',
+        parameters=[
             {'config_file': config_path}
         ]
     )
 
-    # Nodo Controller
+    # Nodo PathController (sigue los puntos publicados)
     PathController = Node(
         name="PathController",
         package='puzzlebot_minichallenge3',
         executable='PathController',
         emulate_tty=True,
-        output='screen',
-        parameters=[
-            {'use_sim_time': False}
-        ]
+        output='screen'
     )
 
     # Herramientas visuales (opcional)
@@ -41,6 +63,6 @@ def generate_launch_description():
     )
 
     # Launch Description
-    l_d = LaunchDescription([PathGenerator, PathController])
+    l_d = LaunchDescription([OdometryNodeReal, PathGenerator, PathController])
 
     return l_d
