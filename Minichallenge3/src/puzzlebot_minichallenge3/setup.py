@@ -31,6 +31,7 @@ setup(
             'OrientationComparator = puzzlebot_minichallenge3.OrientationComparator:main',
             'OdometryNode = puzzlebot_minichallenge3.OdometryNode:main',
             'PathGenerator = puzzlebot_minichallenge3.PathGenerator:main',
+            'PathGeneratorErrors = puzzlebot_minichallenge3.PathGeneratorErrors:main',
             'PathController = puzzlebot_minichallenge3.PathController:main',
         ],
     },

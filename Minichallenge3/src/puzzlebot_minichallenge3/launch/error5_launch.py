@@ -4,11 +4,9 @@ from ament_index_python.packages import get_package_share_directory
 import os
 
 def generate_launch_description():
-    # Obtener la ruta del paquete y del archivo YAML
     pkg_dir = get_package_share_directory('puzzlebot_minichallenge3')
-    config_path = os.path.join(pkg_dir, 'config', 'path.yaml')
+    error_path = os.path.join(pkg_dir, 'config', 'error_groups.yaml')
 
-    # Nodo de Odometría con parámetros ajustables
     OdometryNodeSim = Node(
         name='OdometryNode',
         package='puzzlebot_minichallenge3',
@@ -21,7 +19,6 @@ def generate_launch_description():
         ]
     )
 
-    # Nodo de Odometría con parámetros ajustables
     OdometryNodeReal = Node(
         name='OdometryNode',
         package='puzzlebot_minichallenge3',
@@ -34,19 +31,18 @@ def generate_launch_description():
         ]
     )
 
-    # Nodo PathGenerator (publica la trayectoria)
-    PathGenerator = Node(
-        name="PathGenerator",
+    PathGeneratorErrors = Node(
+        name="PathGeneratorErrors",
         package='puzzlebot_minichallenge3',
-        executable='PathGenerator',
+        executable='PathGeneratorErrors',
         emulate_tty=True,
         output='screen',
         parameters=[
-            {'path_file': config_path}
+            {'path_file': error_path},
+            {'group_name': 'error_5'}
         ]
     )
 
-    # Nodo PathController (sigue los puntos publicados)
     PathController = Node(
         name="PathController",
         package='puzzlebot_minichallenge3',
@@ -55,14 +51,5 @@ def generate_launch_description():
         output='screen'
     )
 
-    # Herramientas visuales (opcional)
-    rqt_graph = Node(
-        name='rqt_graph',
-        package='rqt_graph',
-        executable='rqt_graph'
-    )
+    return LaunchDescription([OdometryNodeReal, PathGeneratorErrors, PathController])
 
-    # Launch Description
-    l_d = LaunchDescription([OdometryNodeReal, PathGenerator, PathController])
-
-    return l_d
