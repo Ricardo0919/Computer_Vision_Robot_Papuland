@@ -24,8 +24,8 @@ def generate_launch_description():
         output='screen',
         emulate_tty=True,
         parameters=[
-            {'angular_correction_factor': 1.01},
-            {'linear_correction_factor': 0.88}
+            {'angular_correction_factor': 0.955},
+            {'linear_correction_factor': 0.94}
         ]
     )
 
