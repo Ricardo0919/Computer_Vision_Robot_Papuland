@@ -37,7 +37,7 @@ def generate_launch_description():
         output='screen',
         emulate_tty=True,
         parameters=[
-            {'side_length': 1.0}
+            {'side_length': 2.0}
         ]
     )
     

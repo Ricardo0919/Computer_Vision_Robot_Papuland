@@ -46,7 +46,7 @@ class Controller(Node):
         #self.create_subscription(Odometry, '/ground_truth', self.odom_callback, 10)
         self.create_subscription(Odometry, '/odom', self.odom_callback, qos_profile_sensor_data)
 
-        self.get_logger().info(f"PID controller iniciado con side_length = {L} m")
+        self.get_logger().info(f"PD controller iniciado con side_length = {L} m")
 
     def odom_callback(self, msg):
         if self.finished:
