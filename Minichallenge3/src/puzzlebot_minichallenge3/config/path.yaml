@@ -1,11 +1,22 @@
+# ------------------------------------------------------------------------------
+# Proyecto: Mini Challenge 3 - Análisis de errores con selección dinámica
+# Materia: Implementación de Robótica Inteligente
+# Fecha: 22 de abril de 2025
+# Alumnos:
+#   - Jonathan Arles Guevara Molina  | A01710380
+#   - Ezzat Alzahouri Campos         | A01710709
+#   - José Ángel Huerta Ríos         | A01710607
+#   - Ricardo Sierra Roa             | A01709887
+# ------------------------------------------------------------------------------
+
 #Ejemplo 1 de ruta - cuadrado de 1x1 metros
 # Puntos de la ruta (coordenadas X y Y en metros)
-#waypoints:
-#  - {x: 0.0, y: 0.0}
-#  - {x: 1.0, y: 0.0}
-#  - {x: 1.0, y: 1.0}
-#  - {x: 0.0, y: 1.0}
-#  - {x: 0.0, y: 0.0}
+waypoints:
+  - {x: 0.0, y: 0.0}
+  - {x: 1.0, y: 0.0}
+  - {x: 1.0, y: 1.0}
+  - {x: 0.0, y: 1.0}
+  - {x: 0.0, y: 0.0}
 
 #Ejemplo 2 de ruta - cuadrado de 2x2 metros
 # Puntos de la ruta (coordenadas X y Y en metros)
@@ -27,12 +38,12 @@
 
 #Ejemplo 4 de ruta
 # Puntos de la ruta (coordenadas X y Y en metros)
-waypoints:
-  - {x: 0.0, y: 0.0}
-  - {x: 0.0, y: 1.23}
-  - {x: -0.5, y: 0.0}
-  - {x: 1.0, y: -1.0}
-  - {x: 0.5, y: 0.5}
+#waypoints:
+#  - {x: 0.0, y: 0.0}
+#  - {x: 0.0, y: 1.23}
+#  - {x: -0.5, y: 0.0}
+#  - {x: 1.0, y: -1.0}
+#  - {x: 0.5, y: 0.5}
 
 #Ejemplo de error
 #waypoints:

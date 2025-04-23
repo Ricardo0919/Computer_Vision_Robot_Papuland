@@ -1,3 +1,14 @@
+# ------------------------------------------------------------------------------
+# Proyecto: Mini Challenge 3 - setup.py
+# Materia: Implementación de Robótica Inteligente
+# Fecha: 22 de abril de 2025
+# Alumnos:
+#   - Jonathan Arles Guevara Molina  | A01710380
+#   - Ezzat Alzahouri Campos         | A01710709
+#   - José Ángel Huerta Ríos         | A01710607
+#   - Ricardo Sierra Roa             | A01709887
+# ------------------------------------------------------------------------------
+
 from setuptools import find_packages, setup
 import os
 from glob import glob

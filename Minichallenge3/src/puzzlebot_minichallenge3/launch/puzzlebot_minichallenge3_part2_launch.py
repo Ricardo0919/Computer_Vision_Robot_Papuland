@@ -1,14 +1,26 @@
+# ------------------------------------------------------------------------------
+# Proyecto: Mini Challenge 3
+# Materia: Implementación de Robótica Inteligente
+# Fecha: 22 de abril de 2025
+# Alumnos:
+#   - Jonathan Arles Guevara Molina  | A01710380
+#   - Ezzat Alzahouri Campos         | A01710709
+#   - José Ángel Huerta Ríos         | A01710607
+#   - Ricardo Sierra Roa             | A01709887
+# ------------------------------------------------------------------------------
+
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 import os
 
 def generate_launch_description():
-    # Obtener la ruta del paquete y del archivo YAML
+
+    # Obtener la ruta del archivo YAML de trayectoria
     pkg_dir = get_package_share_directory('puzzlebot_minichallenge3')
     config_path = os.path.join(pkg_dir, 'config', 'path.yaml')
 
-    # Nodo de Odometría con parámetros ajustables
+    # Nodo de odometría para simulación (definido pero no se lanza por defecto)
     OdometryNodeSim = Node(
         name='OdometryNode',
         package='puzzlebot_minichallenge3',
@@ -16,12 +28,12 @@ def generate_launch_description():
         emulate_tty=True,
         output='screen',
         parameters=[
-            {'angular_correction_factor': 0.90},
-            {'linear_correction_factor': 0.92}
+            {'angular_correction_factor': 0.90},  # Corrección angular en simulación
+            {'linear_correction_factor': 0.92}    # Corrección lineal en simulación
         ]
     )
 
-    # Nodo de Odometría con parámetros ajustables
+    # Nodo de odometría para el robot real (activo por defecto)
     OdometryNodeReal = Node(
         name='OdometryNode',
         package='puzzlebot_minichallenge3',
@@ -29,12 +41,12 @@ def generate_launch_description():
         emulate_tty=True,
         output='screen',
         parameters=[
-            {'angular_correction_factor': 1.02},
-            {'linear_correction_factor': 0.94}
+            {'angular_correction_factor': 1.02},  # Ajuste fino de giros
+            {'linear_correction_factor': 0.94}    # Ajuste fino de avance lineal
         ]
     )
 
-    # Nodo PathGenerator (publica la trayectoria)
+    # Nodo que genera los puntos de trayectoria a partir del archivo YAML
     PathGenerator = Node(
         name="PathGenerator",
         package='puzzlebot_minichallenge3',
@@ -42,11 +54,11 @@ def generate_launch_description():
         emulate_tty=True,
         output='screen',
         parameters=[
-            {'path_file': config_path}
+            {'path_file': config_path}  # Ruta del archivo con los waypoints
         ]
     )
 
-    # Nodo PathController (sigue los puntos publicados)
+    # Nodo que sigue la trayectoria usando control PD
     PathController = Node(
         name="PathController",
         package='puzzlebot_minichallenge3',
@@ -55,14 +67,7 @@ def generate_launch_description():
         output='screen'
     )
 
-    # Herramientas visuales (opcional)
-    rqt_graph = Node(
-        name='rqt_graph',
-        package='rqt_graph',
-        executable='rqt_graph'
-    )
-
-    # Launch Description
+    # Descripción de lanzamiento (solo con nodos activos por defecto)
     l_d = LaunchDescription([OdometryNodeReal, PathGenerator, PathController])
 
     return l_d
