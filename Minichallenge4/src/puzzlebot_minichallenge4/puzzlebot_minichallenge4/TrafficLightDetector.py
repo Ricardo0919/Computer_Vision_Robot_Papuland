@@ -26,6 +26,7 @@ class CVExample(Node):
 
         self.bridge = CvBridge()
 
+        #self.sub = self.create_subscription(Image, 'video_source/raw', self.camera_callback, 10)
         self.sub = self.create_subscription(Image, 'camera', self.camera_callback, 10)
         self.pub_img = self.create_publisher(Image, 'processed_img', 10)
         self.pub_color = self.create_publisher(String, 'color_detector', 10)  # <--- Nuevo Publisher
@@ -90,7 +91,7 @@ class CVExample(Node):
             # Escribir los colores detectados en esquina superior izquierda
             y_offset = 20
             for color in detected_colors:
-                cv2.putText(output_img, color, (5, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 0), 1)
+                cv2.putText(output_img, color, (5, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0), 1)
                 y_offset += 15
 
             # Publicar imagen procesada
