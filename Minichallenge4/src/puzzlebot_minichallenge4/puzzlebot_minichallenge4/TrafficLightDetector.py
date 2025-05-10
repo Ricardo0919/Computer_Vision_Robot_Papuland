@@ -1,13 +1,14 @@
-"""
-This program detects red, green and yellow colors and publishes the processed image and detected action.
-
-Published topics:
-    /processed_img [Image]
-    /color_detector [String]
-
-Subscribed topics:
-    /camera [Image]
-"""
+#!/usr/bin/env python3
+# ------------------------------------------------------------------------------
+# Proyecto: Mini Challenge 4 - Nodo de detección de colores de semáforo
+# Materia: Implementación de Robótica Inteligente
+# Fecha: 14 de mayo de 2025
+# Alumnos:
+#   - Jonathan Arles Guevara Molina  | A01710380
+#   - Ezzat Alzahouri Campos         | A01710709
+#   - José Ángel Huerta Ríos         | A01710607
+#   - Ricardo Sierra Roa             | A01709887
+# ------------------------------------------------------------------------------
 
 import rclpy
 from rclpy.node import Node
@@ -17,19 +18,31 @@ import numpy as np
 
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
-from std_msgs.msg import String  # <--- IMPORTANTE
+from std_msgs.msg import String 
 
 
-class CVExample(Node):
+class TrafficLightDetector(Node):
     def __init__(self):
         super().__init__('color_detector')
 
+        # Declarar y obtener parámetro
+        self.declare_parameter('mode', 'sim')  # Valor por defecto
+        mode = self.get_parameter('mode').get_parameter_value().string_value
+
         self.bridge = CvBridge()
 
-        #self.sub = self.create_subscription(Image, 'video_source/raw', self.camera_callback, 10)
-        self.sub = self.create_subscription(Image, 'camera', self.camera_callback, 10)
+        # Elegir el tópico en función del modo
+        if mode == 'real':
+            topic_name = 'video_source/raw'
+        elif mode == 'sim':
+            topic_name = 'camera'
+        else:
+            self.get_logger().warn(f'Modo "{mode}" no reconocido. Usando "real" por defecto.')
+            topic_name = 'video_source/raw'
+
+        self.sub = self.create_subscription(Image, topic_name, self.camera_callback, 10)
         self.pub_img = self.create_publisher(Image, 'processed_img', 10)
-        self.pub_color = self.create_publisher(String, 'color_detector', 10)  # <--- Nuevo Publisher
+        self.pub_color = self.create_publisher(String, 'color_detector', 10)
 
         self.image_received_flag = False
         dt = 0.1
@@ -114,7 +127,7 @@ class CVExample(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    cv_e = CVExample()
+    cv_e = TrafficLightDetector()
 
     rclpy.spin(cv_e)
 

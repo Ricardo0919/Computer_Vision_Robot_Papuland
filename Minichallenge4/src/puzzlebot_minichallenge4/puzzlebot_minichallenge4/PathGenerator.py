@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # ------------------------------------------------------------------------------
-# Proyecto: Mini Challenge 3 - Nodo Generador de Trayectorias
+# Proyecto: Mini Challenge 4 - Nodo Generador de Trayectorias
 # Materia: Implementación de Robótica Inteligente
-# Fecha: 22 de abril de 2025
+# Fecha: 14 de mayo de 2025
 # Alumnos:
 #   - Jonathan Arles Guevara Molina  | A01710380
 #   - Ezzat Alzahouri Campos         | A01710709

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # ------------------------------------------------------------------------------
-# Proyecto: Mini Challenge 3 - Nodo de Seguimiento de Trayectoria (PathController)
+# Proyecto: Mini Challenge 4 - Nodo de Seguimiento de Trayectoria (PathController)
 # Materia: Implementación de Robótica Inteligente
-# Fecha: 22 de abril de 2025
+# Fecha: 14 de mayo de 2025
 # Alumnos:
 #   - Jonathan Arles Guevara Molina  | A01710380
 #   - Ezzat Alzahouri Campos         | A01710709
@@ -15,6 +15,7 @@ from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from custom_interfaces.msg import PathPose
+from std_msgs.msg import String
 from rclpy.qos import qos_profile_sensor_data
 import numpy as np
 
@@ -27,6 +28,9 @@ class PathController(Node):
         
         # Subscripción a la odometría del robot
         self.odom_sub = self.create_subscription(Odometry, '/odom', self.odom_callback, qos_profile_sensor_data)
+
+        # Subscripción al detector de colores
+        self.color_sub = self.create_subscription(String, '/color_detector', self.color_callback, 10)
         
         # Publicador de comandos de velocidad
         self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
@@ -48,7 +52,25 @@ class PathController(Node):
         self.prev_ang_error = 0.0
         self.prev_time = self.get_clock().now()
 
+        # Estado del semáforo (por defecto en "continue")
+        self.traffic_light_state = "continue"
+
         self.get_logger().info("🧭 PathController PID activado")
+
+    def color_callback(self, msg):
+        # Método para recibir y actualizar el estado del semáforo
+        action_detected = msg.data
+
+        # Lógica de persistencia de estados:
+        if action_detected == "stop":               #RED
+            self.traffic_light_state = "stop"       # Prioridad máxima: rojo
+        elif action_detected == "slow":             #YELLOW    
+            if self.traffic_light_state != "stop":  
+                self.traffic_light_state = "slow"   # Solo cambia si no está en stop
+        elif action_detected == "continue":         #GREEN
+            self.traffic_light_state = "continue"   # Solo verde puede desbloquear el estado de stop
+        
+        self.get_logger().info(f"🎨 Estado del semáforo actualizado: {self.traffic_light_state}")
 
     def path_callback(self, msg):
         #Recibe nuevos puntos de la trayectoria y los agrega a la lista de objetivos.
