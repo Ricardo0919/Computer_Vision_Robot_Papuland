@@ -80,6 +80,12 @@ class PathController(Node):
         self.get_logger().info(f"➕ Añadido punto: ({x:.2f}, {y:.2f})")
 
     def odom_callback(self, msg):
+        # Verificar si el robot debe detenerse debido al semáforo
+        if self.traffic_light_state == "stop":
+            self.get_logger().info("🚦 Luz roja: Detenido. Esperando a luz verde.")
+            self.cmd_pub.publish(Twist())  # Detenerse inmediatamente
+            return
+        
         #Calcula y publica el comando de control basado en la posición actual y el siguiente punto objetivo.
         if self.finished or self.target_index >= len(self.points):
             return
@@ -113,6 +119,10 @@ class PathController(Node):
         der_ang = (ang_error - self.prev_ang_error) / dt if dt > 0 else 0.0
         self.prev_ang_error = ang_error
         w = self.kp_ang * ang_error + self.kd_ang * der_ang
+
+        # Aplicar lógica de velocidad según semáforo
+        if self.traffic_light_state == "slow":
+            v = min(v, 0.1)  # Limitar velocidad en modo "slow"
 
         # Crear y limitar comando de velocidad
         cmd = Twist()
