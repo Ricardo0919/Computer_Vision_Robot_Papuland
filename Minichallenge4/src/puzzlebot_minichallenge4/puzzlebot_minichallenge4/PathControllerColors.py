@@ -23,17 +23,24 @@ class PathController(Node):
     def __init__(self):
         super().__init__('PathController')
 
+        # Configuración de QoS para suscripción de colores
+        qos_profile_color = rclpy.qos.QoSProfile(
+            reliability=rclpy.qos.ReliabilityPolicy.RELIABLE,
+            durability=rclpy.qos.DurabilityPolicy.VOLATILE,
+            depth=10
+        )
+
         # Subscripción a los puntos de la trayectoria
         self.pose_sub = self.create_subscription(PathPose, '/goals', self.path_callback, 10)
         
         # Subscripción a la odometría del robot
         self.odom_sub = self.create_subscription(Odometry, '/odom', self.odom_callback, qos_profile_sensor_data)
+
+        # Subscripción al detector de colores
+        self.create_subscription(String, '/color_detector', self.color_callback, qos_profile_color)
         
         # Publicador de comandos de velocidad
         self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
-
-        # Subscripción al detector de colores
-        self.create_subscription(String, '/color_detector', self.color_callback, 10)
 
         # Lista de puntos objetivo (trayectoria)
         self.points = []
@@ -52,10 +59,24 @@ class PathController(Node):
         self.prev_ang_error = 0.0
         self.prev_time = self.get_clock().now()
 
-        # Estado del semáforo
-        self.traffic_light_state = "none"  # Estado inicial del semáforo
+        self.traffic_light_state = "continue" 
 
         self.get_logger().info("🧭 PathController PID activado")
+
+    def color_callback(self, msg):
+        # Método para recibir y actualizar el estado del semáforo
+        action_detected = msg.data
+
+        # Lógica de persistencia de estados:
+        if action_detected == "stop":               #RED
+            self.traffic_light_state = "stop"       # Prioridad máxima: rojo
+        elif action_detected == "slow":             #YELLOW    
+            if self.traffic_light_state != "stop":  
+                self.traffic_light_state = "slow"   # Solo cambia si no está en stop
+        elif action_detected == "continue":         #GREEN
+            self.traffic_light_state = "continue"   # Solo verde puede desbloquear el estado de stop
+        
+        self.get_logger().info(f"🎨 Estado del semáforo actualizado: {self.traffic_light_state}") 
 
     def path_callback(self, msg):
         #Recibe nuevos puntos de la trayectoria y los agrega a la lista de objetivos.
@@ -66,11 +87,13 @@ class PathController(Node):
 
     def odom_callback(self, msg):
         # Verificar si el robot debe detenerse debido al semáforo
-        if self.traffic_light_state == "stop":
+        if self.traffic_light_state == "continue":
+            pass
+        elif self.traffic_light_state == "stop":
             self.get_logger().info("🚦 Luz roja: Detenido. Esperando a luz verde.")
             self.cmd_pub.publish(Twist())  # Detenerse inmediatamente
             return
-        
+
         #Calcula y publica el comando de control basado en la posición actual y el siguiente punto objetivo.
         if self.finished or self.target_index >= len(self.points):
             return
@@ -105,7 +128,7 @@ class PathController(Node):
         self.prev_ang_error = ang_error
         w = self.kp_ang * ang_error + self.kd_ang * der_ang
 
-        #  Aplicar lógica de velocidad según semáforo
+        # Aplicar lógica de velocidad según semáforo
         if self.traffic_light_state == "slow":
             v = min(v, 0.1)  # Limitar velocidad en modo "slow"
 
@@ -149,28 +172,11 @@ class PathController(Node):
 
         return roll, pitch, yaw
 
-    def color_callback(self, msg):
-        # Método para recibir y actualizar el estado del semáforo
-        action_detected = msg.data
-
-        # Lógica de persistencia de estados:
-        if action_detected == "stop":               #RED
-            self.traffic_light_state = "stop"       # Prioridad máxima: rojo
-        elif action_detected == "slow":             #YELLOW    
-            if self.traffic_light_state != "stop":  
-                self.traffic_light_state = "slow"   # Solo cambia si no está en stop
-        elif action_detected == "continue":         #GREEN
-            self.traffic_light_state = "continue"   # Solo verde puede desbloquear el estado de stop
-        else:
-            return
-                
-        self.get_logger().info(f"🎨 Estado del semáforo actualizado: {self.traffic_light_state}") 
-
-
-
 def main(args=None):
     rclpy.init(args=args)
     node = PathController()
-    rclpy.spin(node)
+    exec = rclpy.executors.MultiThreadedExecutor()
+    exec.add_node(node)
+    exec.spin()
     node.destroy_node()
     rclpy.shutdown()

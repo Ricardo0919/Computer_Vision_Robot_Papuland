@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Proyecto: Mini Challenge 4 - setup.py
 # Materia: Implementación de Robótica Inteligente
-# Fecha: 14 de mayo de 2025
+# Fecha: 22 de abril de 2025
 # Alumnos:
 #   - Jonathan Arles Guevara Molina  | A01710380
 #   - Ezzat Alzahouri Campos         | A01710709
@@ -41,7 +41,7 @@ setup(
             'OdometryNode = puzzlebot_minichallenge4.OdometryNode:main',
             'PathGenerator = puzzlebot_minichallenge4.PathGenerator:main',
             'PathController = puzzlebot_minichallenge4.PathController:main',
-            'TrafficLightDetector = puzzlebot_minichallenge4.TrafficLightDetector:main',
+            'TrafficLightDetector = puzzlebot_minichallenge4.TrafficLightDetector:main'
         ],
     },
 )

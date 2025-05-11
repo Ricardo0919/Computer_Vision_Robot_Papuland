@@ -68,6 +68,6 @@ def generate_launch_description():
     )
 
     # Descripción de lanzamiento (solo con nodos activos por defecto)
-    l_d = LaunchDescription([OdometryNodeReal, PathGenerator, PathController])
+    l_d = LaunchDescription([OdometryNodeSim, PathGenerator, PathController])
 
     return l_d

@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# Proyecto: Mini Challenge 4 - launch.py
+# Proyecto: Mini Challenge 4 - launch file
 # Materia: Implementación de Robótica Inteligente
 # Fecha: 14 de mayo de 2025
 # Alumnos:

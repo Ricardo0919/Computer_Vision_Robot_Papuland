@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# Proyecto: Mini Challenge 4 - launch.py
+# Proyecto: Mini Challenge 4 - launch file
 # Materia: Implementación de Robótica Inteligente
 # Fecha: 14 de mayo de 2025
 # Alumnos:
@@ -75,7 +75,8 @@ def generate_launch_description():
         emulate_tty=True,
         output='screen',
         parameters=[
-            {'mode': 'sim'}  # Modo de operación: 'sim' o 'real'
+            {'mode': 'real'}  # Modo de operación: 'sim' o 'real'
+            #{'mode': 'sim'}  # Modo de operación: 'sim' o 'real'
         ]
     )
 
@@ -85,11 +86,14 @@ def generate_launch_description():
         package='rqt_image_view',
         executable='rqt_image_view',
         emulate_tty=True,
-        output='screen'
+        output='screen',
+        parameters=[
+            {'/processed_img'},  # Tópico de imagen procesada
+        ]
     )
 
 
     # Descripción de lanzamiento (solo con nodos activos por defecto)
-    l_d = LaunchDescription([TrafficLightDetector, rqt_image_view, OdometryNodeSim, PathGenerator, PathController])
+    l_d = LaunchDescription([OdometryNodeReal, PathGenerator, PathController, TrafficLightDetector, rqt_image_view])
 
     return l_d

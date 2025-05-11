@@ -12,24 +12,31 @@
 
 import rclpy
 from rclpy.node import Node
-
 import cv2
 import numpy as np
-
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
-from std_msgs.msg import String 
-
+from std_msgs.msg import String
+import signal
+from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
 
 class TrafficLightDetector(Node):
     def __init__(self):
         super().__init__('color_detector')
+
+        # Configuración de QoS para publicacion de colores
+        qos_profile_color = rclpy.qos.QoSProfile(
+            reliability=rclpy.qos.ReliabilityPolicy.RELIABLE,
+            durability=rclpy.qos.DurabilityPolicy.VOLATILE,
+            depth=10
+        )
 
         # Declarar y obtener parámetro
         self.declare_parameter('mode', 'sim')  # Valor por defecto
         mode = self.get_parameter('mode').get_parameter_value().string_value
 
         self.bridge = CvBridge()
+        self.prev_state = ""  # Guardar el último estado para evitar publicaciones innecesarias
 
         # Elegir el tópico en función del modo
         if mode == 'real':
@@ -42,13 +49,9 @@ class TrafficLightDetector(Node):
 
         self.sub = self.create_subscription(Image, topic_name, self.camera_callback, 10)
         self.pub_img = self.create_publisher(Image, 'processed_img', 10)
-        self.pub_color = self.create_publisher(String, 'color_detector', 10)
+        self.pub_color = self.create_publisher(String, 'color_detector', qos_profile_color)
 
-        self.image_received_flag = False
-        dt = 0.1
-        self.timer = self.create_timer(dt, self.timer_callback)
-
-        self.get_logger().info('ros_color_tracker Node started')
+        self.get_logger().info('🚦 Nodo TrafficLightDetector iniciado.')
 
         # HSV Color ranges
         self.hsv_ranges = {
@@ -67,73 +70,66 @@ class TrafficLightDetector(Node):
     def camera_callback(self, msg):
         try:
             self.cv_img = self.bridge.imgmsg_to_cv2(msg, "bgr8")
-            self.image_received_flag = True
+            self.process_image()
         except:
-            self.get_logger().info('Failed to get an image')
+            self.get_logger().info('⚠️ Failed to get an image')
 
-    def timer_callback(self):
-        if self.image_received_flag:
-            self.image_received_flag = False
+    def process_image(self):
+        # Procesar imagen solo si se recibió correctamente
+        resized_image = cv2.resize(self.cv_img, (160, 120))
+        hsv_img = cv2.cvtColor(resized_image, cv2.COLOR_BGR2HSV)
+        output_img = resized_image.copy()
 
-            resized_image = cv2.resize(self.cv_img, (160, 120))
+        detected_colors = []
 
-            hsv_img = cv2.cvtColor(resized_image, cv2.COLOR_BGR2HSV)
+        for color_name, ranges in self.hsv_ranges.items():
+            mask = None
+            for range_item in ranges:
+                temp_mask = cv2.inRange(hsv_img, range_item["lower"], range_item["upper"])
+                if mask is None:
+                    mask = temp_mask
+                else:
+                    mask = cv2.bitwise_or(mask, temp_mask)
 
-            output_img = resized_image.copy()
+            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-            detected_colors = []
+            for cnt in contours:
+                area = cv2.contourArea(cnt)
+                if area > 600:
+                    x, y, w, h = cv2.boundingRect(cnt)
+                    cv2.rectangle(output_img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                    detected_colors.append(color_name)
 
-            for color_name, ranges in self.hsv_ranges.items():
-                mask = None
-                for range_item in ranges:
-                    temp_mask = cv2.inRange(hsv_img, range_item["lower"], range_item["upper"])
-                    if mask is None:
-                        mask = temp_mask
-                    else:
-                        mask = cv2.bitwise_or(mask, temp_mask)
+        # Escribir los colores detectados en esquina superior izquierda
+        y_offset = 20
+        for color in detected_colors:
+            cv2.putText(output_img, color, (5, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0), 1)
+            y_offset += 15
 
-                contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        # Determinar el estado del semáforo
+        new_state = "none"
+        if "Rojo" in detected_colors:
+            new_state = "stop"
+        elif "Amarillo" in detected_colors:
+            new_state = "slow"
+        elif "Verde" in detected_colors:
+            new_state = "continue"
 
-                for cnt in contours:
-                    area = cv2.contourArea(cnt)
-                    if area > 300:
-                        x, y, w, h = cv2.boundingRect(cnt)
-                        cv2.rectangle(output_img, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                        detected_colors.append(color_name)
-
-            # Escribir los colores detectados en esquina superior izquierda
-            y_offset = 20
-            for color in detected_colors:
-                cv2.putText(output_img, color, (5, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0), 1)
-                y_offset += 15
-
-            # Publicar imagen procesada
-            self.pub_img.publish(self.bridge.cv2_to_imgmsg(output_img, 'bgr8'))
-
-            # Publicar acción basada en el color
+        # Publicar solo si hay un cambio real de estado
+        if new_state != self.prev_state:
+            self.prev_state = new_state
             color_msg = String()
-            if "Rojo" in detected_colors:
-                color_msg.data = "stop"
-            elif "Amarillo" in detected_colors:
-                color_msg.data = "slow"
-            elif "Verde" in detected_colors:
-                color_msg.data = "continue"
-            else:
-                color_msg.data = "none"  # Opcional: si no hay detección
-
+            color_msg.data = new_state
             self.pub_color.publish(color_msg)
+            self.get_logger().info(f"🎨 Semáforo detectado: {color_msg.data.upper()}")
 
+        # Publicar imagen procesada para visualización
+        self.pub_img.publish(self.bridge.cv2_to_imgmsg(output_img, 'bgr8'))
 
 def main(args=None):
     rclpy.init(args=args)
-
-    cv_e = TrafficLightDetector()
-
-    rclpy.spin(cv_e)
-
-    cv_e.destroy_node()
+    node = TrafficLightDetector()
+    rclpy.spin(node)
+    node.destroy_node()
     rclpy.shutdown()
 
-
-if __name__ == '__main__':
-    main()

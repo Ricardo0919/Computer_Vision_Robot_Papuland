@@ -17,6 +17,9 @@ from geometry_msgs.msg import Point, Quaternion
 import os
 import yaml
 import numpy as np
+import signal
+import sys
+
 
 class PathGenerator(Node):
     def __init__(self):
@@ -118,14 +121,9 @@ class PathGenerator(Node):
         #Normaliza un ángulo al rango [-pi, pi].
         return np.arctan2(np.sin(angle), np.cos(angle))
 
-
 def main(args=None):
     rclpy.init(args=args)
     node = PathGenerator()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
-
-
-if __name__ == '__main__':
-    main()
