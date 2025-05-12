@@ -75,8 +75,8 @@ def generate_launch_description():
         emulate_tty=True,
         output='screen',
         parameters=[
-            {'mode': 'real'}  # Modo de operación: 'sim' o 'real'
-            #{'mode': 'sim'}  # Modo de operación: 'sim' o 'real'
+            #{'mode': 'real'}  # Modo de operación: 'sim' o 'real'
+            {'mode': 'sim'}  # Modo de operación: 'sim' o 'real'
         ]
     )
 
@@ -94,6 +94,6 @@ def generate_launch_description():
 
 
     # Descripción de lanzamiento (solo con nodos activos por defecto)
-    l_d = LaunchDescription([OdometryNodeReal, PathGenerator, PathController, TrafficLightDetector, rqt_image_view])
+    l_d = LaunchDescription([OdometryNodeSim, PathGenerator, PathController, TrafficLightDetector, rqt_image_view])
 
     return l_d

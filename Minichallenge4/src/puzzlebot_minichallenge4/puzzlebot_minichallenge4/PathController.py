@@ -23,17 +23,8 @@ class PathController(Node):
     def __init__(self):
         super().__init__('PathController')
 
-        # Subscripción a los puntos de la trayectoria
-        self.pose_sub = self.create_subscription(PathPose, '/goals', self.path_callback, 10)
-        
-        # Subscripción a la odometría del robot
-        self.odom_sub = self.create_subscription(Odometry, '/odom', self.odom_callback, qos_profile_sensor_data)
-        
-        # Publicador de comandos de velocidad
-        self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
-
-        # Subscripción al detector de colores
-        self.create_subscription(String, '/color_detector', self.color_callback, 10)
+        # Estado del semáforo
+        self.traffic_light_state = "none"  # Estado inicial del semáforo
 
         # Lista de puntos objetivo (trayectoria)
         self.points = []
@@ -52,10 +43,33 @@ class PathController(Node):
         self.prev_ang_error = 0.0
         self.prev_time = self.get_clock().now()
 
-        # Estado del semáforo
-        self.traffic_light_state = "none"  # Estado inicial del semáforo
+        # Posición y orientación actual del robot
+        self.x = 0.0
+        self.y = 0.0
+        self.q = 0.0
+
+        # Subscripción a los puntos de la trayectoria
+        self.pose_sub = self.create_subscription(PathPose, '/goals', self.path_callback, 10)
+        
+        # Subscripción a la odometría del robot
+        self.odom_sub = self.create_subscription(Odometry, '/odom', self.odom_callback, qos_profile_sensor_data)
+        
+        # Publicador de comandos de velocidad
+        self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
+
+        # Subscripción al detector de colores
+        self.create_subscription(String, '/color_detector', self.color_callback, 10)
+
+        self.controller = False #This flag is to ensure we received at least one image  
+        self.goals_flag = False
+        dt = 0.1 
+        self.timer = self.create_timer(dt, self.timer_callback) 
 
         self.get_logger().info("🧭 PathController PID activado")
+    
+    def timer_callback(self): 
+        if self.controller: 
+            self.odom_process() 
 
     def path_callback(self, msg):
         #Recibe nuevos puntos de la trayectoria y los agrega a la lista de objetivos.
@@ -63,8 +77,29 @@ class PathController(Node):
         y = msg.pose.position.y
         self.points.append((x, y))
         self.get_logger().info(f"➕ Añadido punto: ({x:.2f}, {y:.2f})")
+        self.goals_flag = True
 
     def odom_callback(self, msg):
+        # Posición y orientación actual del robot
+        self.x = msg.pose.pose.position.x
+        self.y = msg.pose.pose.position.y
+        self.q = msg.pose.pose.orientation
+        self.controller = True
+
+    def odom_process(self):
+        if not self.points:
+            #self.get_logger().warning("🚨 No hay puntos en la trayectoria. Esperando...")
+            return
+
+        if self.target_index >= len(self.points):
+            #self.get_logger().warning("🚨 Índice de objetivo fuera de rango.")
+            self.cmd_pub.publish(Twist())  # Detener el robot
+            return
+
+        if self.q is None:
+            #self.get_logger().warning("🚨 No se ha recibido la orientación del robot.")
+            return
+
         # Verificar si el robot debe detenerse debido al semáforo
         if self.traffic_light_state == "stop":
             self.get_logger().info("🚦 Luz roja: Detenido. Esperando a luz verde.")
@@ -72,19 +107,15 @@ class PathController(Node):
             return
         
         #Calcula y publica el comando de control basado en la posición actual y el siguiente punto objetivo.
-        if self.finished or self.target_index >= len(self.points):
+        if  self.finished or self.target_index >= len(self.points):
             return
-
-        # Posición y orientación actual del robot
-        x = msg.pose.pose.position.x
-        y = msg.pose.pose.position.y
-        q = msg.pose.pose.orientation
-        _, _, theta = self.euler_from_quaternion(q.x, q.y, q.z, q.w)
+        
+        _, _, theta = self.euler_from_quaternion(self.q.x, self.q.y, self.q.z, self.q.w)
 
         # Punto objetivo actual
         goal_x, goal_y = self.points[self.target_index]
-        dx = goal_x - x
-        dy = goal_y - y
+        dx = goal_x - self.x
+        dy = goal_y - self.y
         distance = np.hypot(dx, dy)
         target_theta = np.arctan2(dy, dx)
         ang_error = self.normalize_angle(target_theta - theta)
@@ -165,7 +196,6 @@ class PathController(Node):
             return
                 
         self.get_logger().info(f"🎨 Estado del semáforo actualizado: {self.traffic_light_state}") 
-
 
 
 def main(args=None):

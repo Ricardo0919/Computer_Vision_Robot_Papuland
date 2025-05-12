@@ -67,12 +67,20 @@ class TrafficLightDetector(Node):
             ]
         }
 
+        self.image_received_flag = False #This flag is to ensure we received at least one image  
+        dt = 0.1 
+        self.timer = self.create_timer(dt, self.timer_callback) 
+
     def camera_callback(self, msg):
         try:
             self.cv_img = self.bridge.imgmsg_to_cv2(msg, "bgr8")
-            self.process_image()
+            self.image_received_flag = True         
         except:
             self.get_logger().info('⚠️ Failed to get an image')
+    
+    def timer_callback(self): 
+        if self.image_received_flag: 
+            self.process_image() 
 
     def process_image(self):
         # Procesar imagen solo si se recibió correctamente

@@ -17,9 +17,6 @@ from geometry_msgs.msg import Point, Quaternion
 import os
 import yaml
 import numpy as np
-import signal
-import sys
-
 
 class PathGenerator(Node):
     def __init__(self):
@@ -40,6 +37,9 @@ class PathGenerator(Node):
 
         # Leer los waypoints
         self.waypoints = config.get('waypoints', [])
+        if not self.waypoints:
+            self.get_logger().error("❌ No se encontraron puntos en el archivo de trayectoria.")
+            return
 
         # Parámetros físicos del robot (límite de velocidades)
         self.max_linear_speed = 2.0   # m/s
@@ -53,21 +53,21 @@ class PathGenerator(Node):
         # Crear publicador
         self.publisher_ = self.create_publisher(PathPose, '/goals', 10)
 
-        # Validar la trayectoria y publicar si es válida
-        self.validate_and_publish()
-
-    def validate_and_publish(self):
-        #Valida cada segmento de la trayectoria con base en las capacidades físicas del robot.
-        #Publica solo si todos los puntos son alcanzables.
-        
+        # Validar la trayectoria y configurar temporizador para publicar
+        self.validate_trajectory()
+        self.get_logger().info("✅ Publicando puntos de trayectoria cada 1 segundo...")
+        self.timer = self.create_timer(1.0, self.publish_points)
+    
+    def validate_trajectory(self):
+        # Valida cada segmento de la trayectoria con base en las capacidades físicas del robot.
         all_reachable = True
-        msgs = []
+        self.validated_points = []
 
         for i, wp in enumerate(self.waypoints):
             # Crear mensaje para cada punto
             msg = PathPose()
             msg.pose.position = Point(x=wp['x'], y=wp['y'], z=0.0)
-            msg.pose.orientation = Quaternion(w=1.0)  # Se asume sin rotación
+            msg.pose.orientation = Quaternion(w=1.0)  # Sin rotación
             msg.is_reachable = True  # Por defecto, el punto es alcanzable
 
             # Validaciones a partir del segundo punto
@@ -107,19 +107,31 @@ class PathGenerator(Node):
             if not msg.is_reachable:
                 all_reachable = False
 
-            msgs.append(msg)
+            self.validated_points.append(msg)
 
-        # Publicar los puntos si todos son alcanzables
-        if all_reachable:
-            self.get_logger().info("✅ Todos los puntos son alcanzables. Publicando trayectoria...")
-            for msg in msgs:
+        if not all_reachable:
+            self.get_logger().error("❌ Algunos puntos no son alcanzables. No se publicarán.")
+
+    def publish_points(self):
+        # Publicar todos los puntos de la trayectoria una sola vez
+        if not self.validated_points:
+            self.get_logger().error("❌ No hay puntos validados para publicar.")
+            return
+
+        self.get_logger().info("📍 Publicando puntos de trayectoria...")
+        for msg in self.validated_points:
+            if msg.is_reachable:
                 self.publisher_.publish(msg)
-        else:
-            self.get_logger().error("❌ Algunos puntos no son alcanzables. No se publica la trayectoria.")
+                self.get_logger().info(f"📍 Publicado punto: ({msg.pose.position.x:.2f}, {msg.pose.position.y:.2f})")
+
+        self.get_logger().info("✅ Todos los puntos publicados. Deteniendo publicación.")
+        self.timer.cancel()  # Detener el temporizador para evitar publicar más puntos.
+
 
     def normalize_angle(self, angle):
-        #Normaliza un ángulo al rango [-pi, pi].
+        # Normaliza un ángulo al rango [-pi, pi].
         return np.arctan2(np.sin(angle), np.cos(angle))
+
 
 def main(args=None):
     rclpy.init(args=args)

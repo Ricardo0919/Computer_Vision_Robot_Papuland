@@ -41,8 +41,8 @@ def generate_launch_description():
         emulate_tty=True,
         output='screen',
         parameters=[
-            {'angular_correction_factor': 1.02},  # Ajuste fino de giros
-            {'linear_correction_factor': 0.94}    # Ajuste fino de avance lineal
+            {'angular_correction_factor': 1.01},  # Ajuste fino de giros
+            {'linear_correction_factor': 0.93}    # Ajuste fino de avance lineal
         ]
     )
 
@@ -67,7 +67,32 @@ def generate_launch_description():
         output='screen'
     )
 
+    # Nodo que detecta colores de semáforo
+    TrafficLightDetector = Node(
+        name="TrafficLightDetector",
+        package='puzzlebot_minichallenge4',
+        executable='TrafficLightDetector',
+        emulate_tty=True,
+        output='screen',
+        parameters=[
+            {'mode': 'real'}  # Modo de operación: 'sim' o 'real'
+        ]
+    )
+
+    # Nodo que lanza la interfaz gráfica de rqt_image_view
+    rqt_image_view = Node(
+        name="rqt_image_view",
+        package='rqt_image_view',
+        executable='rqt_image_view',
+        emulate_tty=True,
+        output='screen',
+        parameters=[
+            {'/processed_img'},  # Tópico de imagen procesada
+        ]
+    )
+
+
     # Descripción de lanzamiento (solo con nodos activos por defecto)
-    l_d = LaunchDescription([OdometryNodeSim, PathGenerator, PathController])
+    l_d = LaunchDescription([OdometryNodeReal, PathGenerator, PathController, TrafficLightDetector, rqt_image_view])
 
     return l_d
