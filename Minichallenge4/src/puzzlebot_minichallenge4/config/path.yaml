@@ -11,14 +11,23 @@
 
 #Ejemplo 1 de ruta - cuadrado de 1x1 metros
 # Puntos de la ruta (coordenadas X y Y en metros)
-waypoints:
-  - {x: 0.0, y: 0.0}
-  - {x: 1.0, y: 0.0}
-  - {x: 1.0, y: 1.0}
-  - {x: 0.0, y: 1.0}
-  - {x: 0.0, y: 0.0}
+#waypoints:
+#  - {x: 0.0, y: 0.0}
+#  - {x: 1.0, y: 0.0}
+#  - {x: 1.0, y: 1.0}
+#  - {x: 0.0, y: 1.0}
+#  - {x: 0.0, y: 0.0}
 
-#Ejemplo 2 de ruta - cuadrado de 2x2 metros
+#Ejemplo 2 de ruta - cuadrado de 1.5x1.5 metros
+# Puntos de la ruta (coordenadas X y Y en metros)
+#waypoints:
+#  - {x: 0.0, y: 0.0}
+#  - {x: 1.5, y: 0.0}
+#  - {x: 1.5, y: 1.5}
+#  - {x: 0.0, y: 1.5}
+#  - {x: 0.0, y: 0.0}
+
+#Ejemplo 3 de ruta - cuadrado de 2x2 metros
 # Puntos de la ruta (coordenadas X y Y en metros)
 #waypoints:
 #  - {x: 0.0, y: 0.0}
@@ -27,7 +36,7 @@ waypoints:
 #  - {x: 0.0, y: 2.0}
 #  - {x: 0.0, y: 0.0}
 
-#Ejemplo 3 de ruta
+#Ejemplo 4 de ruta
 # Puntos de la ruta (coordenadas X y Y en metros)
 #waypoints:
 #  - {x: 0.0, y: 0.0}
@@ -36,14 +45,14 @@ waypoints:
 #  - {x: 0.5, y: 0.3}
 #  - {x: 0.7, y: 1.2}
 
-#Ejemplo 4 de ruta
+#Ejemplo 5 de ruta
 # Puntos de la ruta (coordenadas X y Y en metros)
-#waypoints:
-#  - {x: 0.0, y: 0.0}
-#  - {x: 0.0, y: 1.23}
-#  - {x: -0.5, y: 0.0}
-#  - {x: 1.0, y: -1.0}
-#  - {x: 0.5, y: 0.5}
+waypoints:
+  - {x: 0.0, y: 0.0}
+  - {x: 0.0, y: 1.23}
+  - {x: -0.5, y: 0.0}
+  - {x: 1.0, y: -1.0}
+  - {x: 0.5, y: 0.5}
 
 #Ejemplo de error
 #waypoints:

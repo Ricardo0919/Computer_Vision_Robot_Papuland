@@ -60,7 +60,7 @@ class PathController(Node):
         # Subscripción al detector de colores
         self.create_subscription(String, '/color_detector', self.color_callback, 10)
 
-        self.controller = False #This flag is to ensure we received at least one image  
+        self.controller = False   
         self.goals_flag = False
         dt = 0.1 
         self.timer = self.create_timer(dt, self.timer_callback) 

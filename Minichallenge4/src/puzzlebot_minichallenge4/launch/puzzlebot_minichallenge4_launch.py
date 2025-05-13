@@ -41,8 +41,8 @@ def generate_launch_description():
         emulate_tty=True,
         output='screen',
         parameters=[
-            {'angular_correction_factor': 1.01},  # Ajuste fino de giros
-            {'linear_correction_factor': 0.93}    # Ajuste fino de avance lineal
+            {'angular_correction_factor': 0.99},  # Ajuste fino de giros
+            {'linear_correction_factor': 0.90}    # Ajuste fino de avance lineal
         ]
     )
 
