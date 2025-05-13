@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # ------------------------------------------------------------------------------
-# Proyecto: Mini Challenge 3 - Nodo de Seguimiento de Trayectoria (PathController)
+# Proyecto: Mini Challenge 4 - Nodo de Seguimiento de Trayectoria (PathController)
 # Materia: Implementación de Robótica Inteligente
-# Fecha: 22 de abril de 2025
+# Fecha: 14 de mayo de 2025
 # Alumnos:
 #   - Jonathan Arles Guevara Molina  | A01710380
 #   - Ezzat Alzahouri Campos         | A01710709
@@ -23,14 +23,14 @@ class PathController(Node):
     def __init__(self):
         super().__init__('PathController')
 
-        # Estado del semáforo
+        # Estado actual del semáforo (usado para modificar comportamiento del robot)
         self.traffic_light_state = "none"  # Estado inicial del semáforo
 
         # Lista de puntos objetivo (trayectoria)
         self.points = []
         self.target_index = 0
         self.goal_threshold = 0.08  # Tolerancia para considerar un punto alcanzado
-        self.finished = False
+        self.finished = False       # Bandera para indicar si se completó la trayectoria
 
         # Parámetros PID para control lineal y angular
         self.kp_lin = 1.0
@@ -38,7 +38,7 @@ class PathController(Node):
         self.kp_ang = 4.0
         self.kd_ang = 0.3
 
-        # Variables de error anteriores (para derivadas)
+        # Variables para cálculo de derivadas (errores previos y tiempo)
         self.prev_lin_error = 0.0
         self.prev_ang_error = 0.0
         self.prev_time = self.get_clock().now()
@@ -46,7 +46,7 @@ class PathController(Node):
         # Posición y orientación actual del robot
         self.x = 0.0
         self.y = 0.0
-        self.q = 0.0
+        self.q = 0.0 # Quaternion
 
         # Subscripción a los puntos de la trayectoria
         self.pose_sub = self.create_subscription(PathPose, '/goals', self.path_callback, 10)
@@ -60,19 +60,21 @@ class PathController(Node):
         # Subscripción al detector de colores
         self.create_subscription(String, '/color_detector', self.color_callback, 10)
 
-        self.controller = False   
-        self.goals_flag = False
+        # Control de ejecución
+        self.controller = False     # Indica si se ha recibido al menos un mensaje de odometría (habilita el procesamiento de control)
+        self.goals_flag = False     # Indica si ya se han recibido puntos de la trayectoria (objetivos)
         dt = 0.1 
-        self.timer = self.create_timer(dt, self.timer_callback) 
+        self.timer = self.create_timer(dt, self.timer_callback) # Temporizador que ejecuta el control cada 0.1 segundos
 
         self.get_logger().info("🧭 PathController PID activado")
     
+    # Función de timer para ejecutar el proceso de movimiento del robot con odometría y validaciones a partir del color recibido
     def timer_callback(self): 
         if self.controller: 
             self.odom_process() 
 
     def path_callback(self, msg):
-        #Recibe nuevos puntos de la trayectoria y los agrega a la lista de objetivos.
+        # Agrega un nuevo punto a la trayectoria cuando se recibe desde /goals
         x = msg.pose.position.x
         y = msg.pose.position.y
         self.points.append((x, y))
@@ -80,20 +82,22 @@ class PathController(Node):
         self.goals_flag = True
 
     def odom_callback(self, msg):
-        # Posición y orientación actual del robot
+        # Actualiza la posición y orientación del robot con la odometría
         self.x = msg.pose.pose.position.x
         self.y = msg.pose.pose.position.y
         self.q = msg.pose.pose.orientation
-        self.controller = True
+        self.controller = True # Habilita el movimiento del robot tras recibir la primera odometría
 
     def odom_process(self):
+        # Detiene el robot si no hay objetivos válidos
         if not self.points:
             #self.get_logger().warning("🚨 No hay puntos en la trayectoria. Esperando...")
             return
 
+        # Detiene el robot si no hay objetivos válidos
         if self.target_index >= len(self.points):
             #self.get_logger().warning("🚨 Índice de objetivo fuera de rango.")
-            self.cmd_pub.publish(Twist())  # Detener el robot
+            self.cmd_pub.publish(Twist())
             return
 
         if self.q is None:
@@ -110,6 +114,7 @@ class PathController(Node):
         if  self.finished or self.target_index >= len(self.points):
             return
         
+        # Convertir orientación del robot a ángulo yaw
         _, _, theta = self.euler_from_quaternion(self.q.x, self.q.y, self.q.z, self.q.w)
 
         # Punto objetivo actual
@@ -120,7 +125,7 @@ class PathController(Node):
         target_theta = np.arctan2(dy, dx)
         ang_error = self.normalize_angle(target_theta - theta)
 
-        # Cálculo de delta de tiempo
+        # Cálculo de delta de tiempo (evita división por cero)
         now = self.get_clock().now()
         dt = (now - self.prev_time).nanoseconds * 1e-9
         self.prev_time = now
@@ -131,16 +136,16 @@ class PathController(Node):
         self.prev_lin_error = lin_error
         v = self.kp_lin * lin_error + self.kd_lin * der_lin
 
-        # Control angular
+        # Control angular basado en error de orientación
         der_ang = (ang_error - self.prev_ang_error) / dt if dt > 0 else 0.0
         self.prev_ang_error = ang_error
         w = self.kp_ang * ang_error + self.kd_ang * der_ang
 
-        #  Aplicar lógica de velocidad según semáforo
+        # Reducción de velocidad si el semáforo está en modo "slow" (amarillo)
         if self.traffic_light_state == "slow":
             v = min(v, 0.1)  # Limitar velocidad en modo "slow"
 
-        # Crear y limitar comando de velocidad
+        # Limita velocidades a rangos seguros para el robot
         cmd = Twist()
         cmd.linear.x = np.clip(v, -0.3, 0.3)
         cmd.angular.z = np.clip(w, -1.5, 1.5)

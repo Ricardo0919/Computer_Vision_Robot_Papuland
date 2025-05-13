@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# Proyecto: Mini Challenge 4 - launch file
+# Proyecto: Mini Challenge 4 - Lunch file
 # Materia: Implementación de Robótica Inteligente
 # Fecha: 14 de mayo de 2025
 # Alumnos:
@@ -20,7 +20,7 @@ def generate_launch_description():
     pkg_dir = get_package_share_directory('puzzlebot_minichallenge4')
     config_path = os.path.join(pkg_dir, 'config', 'path.yaml')
 
-    # Nodo de odometría para simulación (definido pero no se lanza por defecto)
+    # Nodo de odometría para simulación (activo por defecto)
     OdometryNodeSim = Node(
         name='OdometryNode',
         package='puzzlebot_minichallenge4',
@@ -33,7 +33,7 @@ def generate_launch_description():
         ]
     )
 
-    # Nodo de odometría para el robot real (activo por defecto)
+    # Nodo de odometría para el robot real (definido pero no se lanza por defecto)
     OdometryNodeReal = Node(
         name='OdometryNode',
         package='puzzlebot_minichallenge4',

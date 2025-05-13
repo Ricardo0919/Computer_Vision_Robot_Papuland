@@ -22,11 +22,11 @@ class PathGenerator(Node):
     def __init__(self):
         super().__init__('PathGenerator')
 
-        # Declarar y leer parámetro con la ruta del archivo de trayectoria
+        # Declarar y obtener el parámetro 'path_file' desde un launch file o línea de comandos
         self.declare_parameter('path_file', '')
         path_file = self.get_parameter('path_file').get_parameter_value().string_value
 
-        # Verificar existencia del archivo
+        # Verificar si el archivo existe en la ruta proporcionada
         if not path_file or not os.path.exists(path_file):
             self.get_logger().error(f"❌ Archivo 'path.yaml' no encontrado en la ruta: {path_file}")
             return
@@ -42,8 +42,8 @@ class PathGenerator(Node):
             return
 
         # Parámetros físicos del robot (límite de velocidades)
-        self.max_linear_speed = 2.0   # m/s
-        self.max_angular_speed = 6.0  # rad/s
+        self.max_linear_speed = 0.8   # Velocidad lineal máxima en m/s
+        self.max_angular_speed = 6.0  # Velocidad angular máxima en rad/s
 
         # Validar que el primer punto sea el origen
         if not self.waypoints or (self.waypoints[0]['x'] != 0.0 or self.waypoints[0]['y'] != 0.0):
@@ -67,18 +67,18 @@ class PathGenerator(Node):
             # Crear mensaje para cada punto
             msg = PathPose()
             msg.pose.position = Point(x=wp['x'], y=wp['y'], z=0.0)
-            msg.pose.orientation = Quaternion(w=1.0)  # Sin rotación
+            msg.pose.orientation = Quaternion(w=1.0)  # Sin orientación (plano XY)
             msg.is_reachable = True  # Por defecto, el punto es alcanzable
 
-            # Validaciones a partir del segundo punto
+            # A partir del segundo punto, se validan velocidades requeridas
             if i > 0:
                 p1 = self.waypoints[i - 1]
                 p2 = wp
 
                 dx = p2['x'] - p1['x']
                 dy = p2['y'] - p1['y']
-                distance = np.hypot(dx, dy)
-                angle = np.arctan2(dy, dx)
+                distance = np.hypot(dx, dy) # Distancia euclidiana
+                angle = np.arctan2(dy, dx)  # Dirección del movimiento
 
                 # Validación de velocidad angular (solo si hay dos giros previos)
                 if i > 1:
@@ -93,7 +93,7 @@ class PathGenerator(Node):
                             f"⚠️ Punto {i+1}: giro muy brusco ({np.degrees(dtheta):.2f}°) > máx. vel. angular"
                         )
 
-                # Validación de velocidad lineal
+                # Validar velocidad lineal requerida entre dos puntos
                 required_linear_speed = distance / 1.0  # Se asume 1 segundo por segmento
                 if required_linear_speed > self.max_linear_speed:
                     msg.is_reachable = False
@@ -101,19 +101,21 @@ class PathGenerator(Node):
                         f"⚠️ Punto {i+1}: requiere {required_linear_speed:.2f} m/s > máx. {self.max_linear_speed:.2f} m/s"
                     )
 
+            # Mostrar estado del punto (alcanzable o no)
             estado = "✅ alcanzable" if msg.is_reachable else "❌ NO alcanzable"
             self.get_logger().info(f"Punto {i+1}: ({msg.pose.position.x:.2f}, {msg.pose.position.y:.2f}) → {estado}")
 
             if not msg.is_reachable:
                 all_reachable = False
 
+            # Agregar punto a la lista final
             self.validated_points.append(msg)
 
         if not all_reachable:
             self.get_logger().error("❌ Algunos puntos no son alcanzables. No se publicarán.")
 
     def publish_points(self):
-        # Publicar todos los puntos de la trayectoria una sola vez
+        # Publica los puntos validados uno por uno en el tópico '/goals', solo se publican puntos alcanzables.
         if not self.validated_points:
             self.get_logger().error("❌ No hay puntos validados para publicar.")
             return

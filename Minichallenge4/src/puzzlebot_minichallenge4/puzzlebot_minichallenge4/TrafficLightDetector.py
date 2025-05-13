@@ -31,14 +31,14 @@ class TrafficLightDetector(Node):
             depth=10
         )
 
-        # Declarar y obtener parámetro
+        # Obtener parámetro 'mode' (sim o real)
         self.declare_parameter('mode', 'sim')  # Valor por defecto
         mode = self.get_parameter('mode').get_parameter_value().string_value
 
         self.bridge = CvBridge()
         self.prev_state = ""  # Guardar el último estado para evitar publicaciones innecesarias
 
-        # Elegir el tópico en función del modo
+        # Seleccionar el tópico de imagen dependiendo del modo
         if mode == 'real':
             topic_name = 'video_source/raw'
         elif mode == 'sim':
@@ -47,13 +47,14 @@ class TrafficLightDetector(Node):
             self.get_logger().warn(f'Modo "{mode}" no reconocido. Usando "real" por defecto.')
             topic_name = 'video_source/raw'
 
+        # Subscripción a cámara y publishers
         self.sub = self.create_subscription(Image, topic_name, self.camera_callback, 10)
         self.pub_img = self.create_publisher(Image, 'processed_img', 10)
         self.pub_color = self.create_publisher(String, 'color_detector', qos_profile_color)
 
         self.get_logger().info('🚦 Nodo TrafficLightDetector iniciado.')
 
-        # HSV Color ranges
+        # Rango de colores en HSV para detectar cada luz del semáforo
         self.hsv_ranges = {
             "Rojo": [
                 {"lower": np.array([0, 100, 100]), "upper": np.array([10, 255, 255])},
@@ -67,11 +68,14 @@ class TrafficLightDetector(Node):
             ]
         }
 
-        self.image_received_flag = False #This flag is to ensure we received at least one image  
+        # Bandera para asegurar que llegó una imagen
+        self.image_received_flag = False 
         dt = 0.1 
+        # Procesa imagen cada 10 Hz
         self.timer = self.create_timer(dt, self.timer_callback) 
 
     def camera_callback(self, msg):
+        # Convertir el mensaje ROS a imagen OpenCV
         try:
             self.cv_img = self.bridge.imgmsg_to_cv2(msg, "bgr8")
             self.image_received_flag = True         
@@ -83,13 +87,13 @@ class TrafficLightDetector(Node):
             self.process_image() 
 
     def process_image(self):
-        # Procesar imagen solo si se recibió correctamente
+        # Redimensionar y convertir a HSV
         resized_image = cv2.resize(self.cv_img, (160, 120))
         hsv_img = cv2.cvtColor(resized_image, cv2.COLOR_BGR2HSV)
         output_img = resized_image.copy()
-
         detected_colors = []
 
+        # Detectar colores presentes según rangos HSV
         for color_name, ranges in self.hsv_ranges.items():
             mask = None
             for range_item in ranges:
