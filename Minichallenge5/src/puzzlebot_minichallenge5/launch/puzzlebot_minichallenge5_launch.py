@@ -1,11 +1,8 @@
 # ------------------------------------------------------------------------------
-# Proyecto: Mini Challenge 4 - launch file
+# Proyecto: Mini Challenge 5 - launch file
 # Materia: Implementación de Robótica Inteligente
-# Fecha: 14 de mayo de 2025
-# Alumnos:
-#   - Jonathan Arles Guevara Molina  | A01710380
-#   - Ezzat Alzahouri Campos         | A01710709
-#   - José Ángel Huerta Ríos         | A01710607
+# Fecha: 21 de mayo de 2025
+# Alumno:
 #   - Ricardo Sierra Roa             | A01709887
 # ------------------------------------------------------------------------------
 
@@ -14,13 +11,16 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
 
-    # Nodo que sigue la línea usando control PD
+    # Nodo controlador en base a seguidor de línea y detección de colores de semáforo
     Controller = Node(
         name="Controller",
         package='puzzlebot_minichallenge5',
         executable='Controller',
         emulate_tty=True,
-        output='screen'
+        output='screen',
+        parameters=[
+            {'max_speed': 0.65} # Límite de máxima velocidad del robot
+        ]
     )
 
     # Nodo que detecta la línea a seguir
@@ -43,12 +43,13 @@ def generate_launch_description():
         emulate_tty=True,
         output='screen',
         parameters=[
-            {'mode': 'sim'}  # Modo de operación: 'sim' o 'real'
+            {'mode': 'sim'},  # Modo de operación: 'sim' o 'real'
+            {'area': 600}     # Área mínima para detectar un objeto
         ]
     )
 
-    # Nodo que lanza la interfaz gráfica de rqt_image_view
-    rqt_image_view = Node(
+    # Nodo que lanza la interfaz gráfica de rqt_image_view para visualizar la imagen de lineas detectadasq
+    rqt_image_view_line = Node(
         name="rqt_image_view",
         package='rqt_image_view',
         executable='rqt_image_view',
@@ -59,7 +60,19 @@ def generate_launch_description():
         ]
     )
 
+    # Nodo que lanza la interfaz gráfica de rqt_image_view para visualizar la imagen de colores detectados
+    rqt_image_view_color = Node(
+        name="rqt_image_view",
+        package='rqt_image_view',
+        executable='rqt_image_view',
+        emulate_tty=True,
+        output='screen',
+        parameters=[
+            {'/processed_img'},  # Tópico de imagen procesada
+        ]
+    )
+
     # Descripción de lanzamiento (solo con nodos activos por defecto)
-    l_d = LaunchDescription([LineFollower, Controller, TrafficLightDetector, rqt_image_view])
+    l_d = LaunchDescription([LineFollower, Controller, TrafficLightDetector, rqt_image_view_line, rqt_image_view_color])
 
     return l_d

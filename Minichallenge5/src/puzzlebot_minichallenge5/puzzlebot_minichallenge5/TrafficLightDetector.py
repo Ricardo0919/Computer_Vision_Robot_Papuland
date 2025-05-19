@@ -26,14 +26,19 @@ class TrafficLightDetector(Node):
             depth=10
         )
 
-        # Declarar y obtener parámetro
+        # Declarar y obtener el parámetro de modo ('sim' para simulación o 'real' para físico)
         self.declare_parameter('mode', 'sim')  # Valor por defecto
         mode = self.get_parameter('mode').get_parameter_value().string_value
 
+        # Declarar y obtener el parámetro de area del objeto
+        self.declare_parameter('area', 600)  # Valor por defecto
+        self.area = self.get_parameter('area').get_parameter_value().integer_value
+
+        # Inicializa el puente entre ROS y OpenCV
         self.bridge = CvBridge()
         self.prev_state = ""  # Guardar el último estado para evitar publicaciones innecesarias
 
-        # Elegir el tópico en función del modo
+        # Seleccionar el tópico de la cámara dependiendo del modo
         if mode == 'real':
             topic_name = 'video_source/raw'
         elif mode == 'sim':
@@ -41,14 +46,15 @@ class TrafficLightDetector(Node):
         else:
             self.get_logger().warn(f'Modo "{mode}" no reconocido. Usando "real" por defecto.')
             topic_name = 'video_source/raw'
-
+        
+        # Subscripción al tópico de cámara y definición de publicadores
         self.sub = self.create_subscription(Image, topic_name, self.camera_callback, 10)
         self.pub_img = self.create_publisher(Image, 'processed_img', 10)
         self.pub_color = self.create_publisher(String, 'color_detector', qos_profile_color)
 
         self.get_logger().info('🚦 Nodo TrafficLightDetector iniciado.')
 
-        # HSV Color ranges
+        # Rango de colores en HSV para detectar cada luz del semáforo
         self.hsv_ranges = {
             "Rojo": [
                 {"lower": np.array([0, 100, 100]), "upper": np.array([10, 255, 255])},
@@ -62,43 +68,51 @@ class TrafficLightDetector(Node):
             ]
         }
 
+        # Bandera para asegurar que llegó una imagen
         self.image_received_flag = False #This flag is to ensure we received at least one image  
         dt = 0.1 
+        # Procesa imagen cada 10 Hz
         self.timer = self.create_timer(dt, self.timer_callback) 
 
     def camera_callback(self, msg):
+        # Convierte el mensaje ROS de tipo Image a una imagen de OpenCV
         try:
             self.cv_img = self.bridge.imgmsg_to_cv2(msg, "bgr8")
             self.image_received_flag = True         
         except:
-            self.get_logger().info('⚠️ Failed to get an image')
+            self.get_logger().info('⚠️ Fallo al recibir imagen de la cámara')
     
     def timer_callback(self): 
+        # Si ya se recibió una imagen, procede a procesarla
         if self.image_received_flag: 
             self.process_image() 
 
     def process_image(self):
-        # Procesar imagen solo si se recibió correctamente
+        # Redimensiona la imagen y la convierte a espacio de color HSV
         resized_image = cv2.resize(self.cv_img, (160, 120))
         hsv_img = cv2.cvtColor(resized_image, cv2.COLOR_BGR2HSV)
         output_img = resized_image.copy()
 
         detected_colors = []
 
+         # IteraR sobre los colores definidos y aplica máscaras
         for color_name, ranges in self.hsv_ranges.items():
             mask = None
             for range_item in ranges:
                 temp_mask = cv2.inRange(hsv_img, range_item["lower"], range_item["upper"])
+                # Combina máscaras si hay más de un rango (como en rojo)
                 if mask is None:
                     mask = temp_mask
                 else:
                     mask = cv2.bitwise_or(mask, temp_mask)
 
+            # Encuentra contornos de las regiones detectadas
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
+            # Filtra por área para evitar falsos positivos
             for cnt in contours:
                 area = cv2.contourArea(cnt)
-                if area > 600:
+                if area > self.area:
                     x, y, w, h = cv2.boundingRect(cnt)
                     cv2.rectangle(output_img, (x, y), (x + w, y + h), (0, 255, 0), 2)
                     detected_colors.append(color_name)
