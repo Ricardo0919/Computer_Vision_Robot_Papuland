@@ -17,7 +17,7 @@ from std_msgs.msg import Float32
 
 class LineFollower(Node):
     def __init__(self):
-        super().__init__('line_follower')
+        super().__init__('LineFollower')
         self.bridge = CvBridge()
         self.image_received_flag = False
 
@@ -104,7 +104,7 @@ class LineFollower(Node):
             cx, cy = max(line_centers, key=lambda pt: pt[1])
 
         else:
-            self.get_logger().warning('⚠️ No se detectaron suficientes líneas para calcular el error.')
+            #self.get_logger().warning('⚠️ No se detectaron suficientes líneas para calcular el error.')
             self.pub_error.publish(Float32(data=np.nan))
             self.pub_img.publish(self.bridge.cv2_to_imgmsg(output_img, 'bgr8'))
             return
@@ -119,7 +119,7 @@ class LineFollower(Node):
         cv2.line(output_img, (cx, cy), (image_center, cy), (0, 255, 255), 2)  # Línea amarilla (error)
         cv2.putText(output_img, f'Error: {error:.2f}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
 
-        self.get_logger().info(f'📐 Error de línea central: {error}')
+        #self.get_logger().info(f'📐 Error de línea central: {error}')
 
         # Publicar la imagen procesada
         self.pub_img.publish(self.bridge.cv2_to_imgmsg(output_img, 'bgr8'))

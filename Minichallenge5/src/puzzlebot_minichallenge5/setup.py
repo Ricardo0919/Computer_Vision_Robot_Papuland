@@ -38,12 +38,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'OdometryNode = puzzlebot_minichallenge5.OdometryNode:main',
-            'PathGenerator = puzzlebot_minichallenge5.PathGenerator:main',
-            'PathController = puzzlebot_minichallenge5.PathController:main',
             'Controller = puzzlebot_minichallenge5.Controller:main',
             'LineFollower = puzzlebot_minichallenge5.LineFollower:main',
-            'Color_Tracker = puzzlebot_minichallenge5.Color_Tracker:main',
             'TrafficLightDetector = puzzlebot_minichallenge5.TrafficLightDetector:main',
         ],
     },

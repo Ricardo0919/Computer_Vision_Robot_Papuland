@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 # ------------------------------------------------------------------------------
-# Proyecto: Mini Challenge 4 - Nodo de detección de colores de semáforo
+# Proyecto: Mini Challenge 5 - Nodo de detección de colores de semáforo
 # Materia: Implementación de Robótica Inteligente
-# Fecha: 14 de mayo de 2025
-# Alumnos:
-#   - Jonathan Arles Guevara Molina  | A01710380
-#   - Ezzat Alzahouri Campos         | A01710709
-#   - José Ángel Huerta Ríos         | A01710607
+# Fecha: 21 de mayo de 2025
+# Alumno:
 #   - Ricardo Sierra Roa             | A01709887
 # ------------------------------------------------------------------------------
 
@@ -17,12 +14,10 @@ import numpy as np
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 from std_msgs.msg import String
-import signal
-from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
 
 class TrafficLightDetector(Node):
     def __init__(self):
-        super().__init__('color_detector')
+        super().__init__('TrafficLightDetector')
 
         # Configuración de QoS para publicacion de colores
         qos_profile_color = rclpy.qos.QoSProfile(
@@ -129,7 +124,7 @@ class TrafficLightDetector(Node):
             color_msg = String()
             color_msg.data = new_state
             self.pub_color.publish(color_msg)
-            self.get_logger().info(f"🎨 Semáforo detectado: {color_msg.data.upper()}")
+            #self.get_logger().info(f"🎨 Semáforo detectado: {color_msg.data.upper()}")
 
         # Publicar imagen procesada para visualización
         self.pub_img.publish(self.bridge.cv2_to_imgmsg(output_img, 'bgr8'))

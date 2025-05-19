@@ -35,6 +35,18 @@ def generate_launch_description():
         ]
     )
 
+    # Nodo que detecta colores de semáforo
+    TrafficLightDetector = Node(
+        name="TrafficLightDetector",
+        package='puzzlebot_minichallenge5',
+        executable='TrafficLightDetector',
+        emulate_tty=True,
+        output='screen',
+        parameters=[
+            {'mode': 'sim'}  # Modo de operación: 'sim' o 'real'
+        ]
+    )
+
     # Nodo que lanza la interfaz gráfica de rqt_image_view
     rqt_image_view = Node(
         name="rqt_image_view",
@@ -47,8 +59,7 @@ def generate_launch_description():
         ]
     )
 
-
     # Descripción de lanzamiento (solo con nodos activos por defecto)
-    l_d = LaunchDescription([LineFollower, Controller, rqt_image_view])
+    l_d = LaunchDescription([LineFollower, Controller, TrafficLightDetector, rqt_image_view])
 
     return l_d
