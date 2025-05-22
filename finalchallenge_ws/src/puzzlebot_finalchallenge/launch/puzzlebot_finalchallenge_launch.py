@@ -22,7 +22,7 @@ def generate_launch_description():
         emulate_tty=True,
         output='screen',
         parameters=[
-            {'max_speed': 0.09} # Límite de máxima velocidad del robot
+            {'max_speed': 0.1} # Límite de máxima velocidad del robot
         ]
     )
 
@@ -76,6 +76,6 @@ def generate_launch_description():
     )
 
     # Descripción de lanzamiento (solo con nodos activos por defecto)
-    l_d = LaunchDescription([LineFollower, Controller, TrafficLightDetector, rqt_image_view_line, rqt_image_view_color])
+    l_d = LaunchDescription([LineFollower, Controller, rqt_image_view_line])
 
     return l_d

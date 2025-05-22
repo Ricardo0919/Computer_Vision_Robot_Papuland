@@ -81,7 +81,7 @@ class Controller(Node):
             return
 
         # Limitar el rango del error
-        max_error = 190.0
+        max_error = 40.0
         self.error = np.clip(self.error, -max_error, max_error)
 
         # Control PD Adaptativo para el ángulo
