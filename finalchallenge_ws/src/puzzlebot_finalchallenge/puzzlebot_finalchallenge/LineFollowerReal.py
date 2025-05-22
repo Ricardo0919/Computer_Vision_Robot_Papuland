@@ -18,10 +18,6 @@ class LineFollower(Node):
         self.declare_parameter('mode',          'real')
         self.declare_parameter('use_hsv',        False)
         self.declare_parameter('gray_thresh',     95)
-        self.declare_parameter('lower_h',          0)
-        self.declare_parameter('upper_h',        180)
-        self.declare_parameter('upper_s',        255)
-        self.declare_parameter('upper_v',        140)
 
         # Filtros de forma
         self.declare_parameter('min_area',         30)
@@ -69,10 +65,8 @@ class LineFollower(Node):
             _, mask = cv2.threshold(gray, thr, 255, cv2.THRESH_BINARY_INV)
         else:
             hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
-            lo  = np.array([self.get_parameter('lower_h').value, 0, 0])
-            hi  = np.array([self.get_parameter('upper_h').value,
-                            self.get_parameter('upper_s').value,
-                            self.get_parameter('upper_v').value])
+            lo  = np.array([0, 0, 0])
+            hi  = np.array([180, 255, 140])
             mask = cv2.inRange(hsv, lo, hi)
 
         # 2) Morfología
@@ -121,11 +115,12 @@ class LineFollower(Node):
             left, right = centers            # ya ordenados
 
             if right[0] < img_cx:            # ambos a la IZQUIERDA
-                cx, cy = left                # toma el más a la izquierda
+                cx, cy = right               # → toma el más a la derecha
             elif left[0] > img_cx:           # ambos a la DERECHA
-                cx, cy = right               # toma el más a la derecha
+                cx, cy = left                # → toma el más a la izquierda
             else:                            # uno a cada lado
                 cx, cy = min(centers, key=lambda p: abs(p[0] - img_cx))
+
 
         else:  # 3 o más contornos
             cx, cy = min(centers, key=lambda p: abs(p[0] - img_cx))

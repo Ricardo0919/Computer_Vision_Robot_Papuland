@@ -85,7 +85,7 @@ class TrafficLightDetector(Node):
             if color_detected != self.last_color:
                 msg_out = String()
                 msg_out.data = color_detected
-                self.publisher.publish(msg_out)
+                #self.publisher.publish(msg_out)
                 self.get_logger().info(f"Color detectado: {color_detected}")
                 self.last_color = color_detected
 
