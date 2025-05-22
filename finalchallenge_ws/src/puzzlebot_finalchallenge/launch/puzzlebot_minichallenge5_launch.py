@@ -1,8 +1,11 @@
 # ------------------------------------------------------------------------------
-# Proyecto: Mini Challenge 5 - launch file
+# Proyecto: Puzzlebot Final Challenge - launch file
 # Materia: Implementación de Robótica Inteligente
-# Fecha: 21 de mayo de 2025
-# Alumno:
+# Fecha: 12 de junio de 2025
+# Alumnos:
+#   - Jonathan Arles Guevara Molina  | A01710380
+#   - Ezzat Alzahouri Campos         | A01710709
+#   - José Ángel Huerta Ríos         | A01710607
 #   - Ricardo Sierra Roa             | A01709887
 # ------------------------------------------------------------------------------
 
@@ -14,7 +17,7 @@ def generate_launch_description():
     # Nodo controlador en base a seguidor de línea y detección de colores de semáforo
     Controller = Node(
         name="Controller",
-        package='puzzlebot_minichallenge5',
+        package='puzzlebot_finalchallenge',
         executable='Controller',
         emulate_tty=True,
         output='screen',
@@ -26,7 +29,7 @@ def generate_launch_description():
     # Nodo que detecta la línea a seguir
     LineFollower = Node(
         name="LineFollower",
-        package='puzzlebot_minichallenge5',
+        package='puzzlebot_finalchallenge',
         executable='LineFollower',
         emulate_tty=True,
         output='screen',
@@ -38,7 +41,7 @@ def generate_launch_description():
     # Nodo que detecta colores de semáforo
     TrafficLightDetector = Node(
         name="TrafficLightDetector",
-        package='puzzlebot_minichallenge5',
+        package='puzzlebot_finalchallenge',
         executable='TrafficLightDetector',
         emulate_tty=True,
         output='screen',

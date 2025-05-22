@@ -27,7 +27,7 @@ class TrafficLightDetector(Node):
         )
 
         # Declarar y obtener el parámetro de modo ('sim' para simulación o 'real' para físico)
-        self.declare_parameter('mode', 'sim')  # Valor por defecto
+        self.declare_parameter('mode', 'real')  # Valor por defecto
         mode = self.get_parameter('mode').get_parameter_value().string_value
 
         # Declarar y obtener el parámetro de area del objeto

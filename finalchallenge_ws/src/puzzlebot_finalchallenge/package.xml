@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>puzzlebot_minichallenge5</name>
+  <name>puzzlebot_finalchallenge</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
   <maintainer email="rickisierra03@gmail.com">ricardosierra</maintainer>
@@ -12,9 +12,17 @@
   <depend>std_msgs</depend>  <!-- Dependencia para mensajes estándar en ROS 2 -->
   <depend>geometry_msgs</depend>
 
+
+  <!-- Dependencias nuevas para inferencia con ONNX y OpenCV -->
+  <exec_depend>onnxruntime</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>opencv</exec_depend>
+
+
   <!-- Dependencias para generar mensajes personalizados -->
   <build_depend>rosidl_default_generators</build_depend>
   <exec_depend>rosidl_default_runtime</exec_depend>
+  <exec_depend>ament_index_python</exec_depend>
 
   <!-- Dependencias para pruebas -->
   <test_depend>ament_copyright</test_depend>

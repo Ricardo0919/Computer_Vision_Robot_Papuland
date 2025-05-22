@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# Proyecto: Mini Challenge 4 - setup.py
+# Proyecto: Mini Challenge 5 - setup.py
 # Materia: Implementación de Robótica Inteligente
 # Fecha: 22 de abril de 2025
 # Alumnos:
@@ -13,7 +13,7 @@ from setuptools import find_packages, setup
 import os
 from glob import glob
 
-package_name = 'puzzlebot_minichallenge5'
+package_name = 'puzzlebot_finalchallenge'
 
 setup(
     name=package_name,
@@ -25,9 +25,13 @@ setup(
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*launch.[pxy][yma]*'))),
         (os.path.join('share', package_name, 'config'), glob(os.path.join('config', '*.[yma]*'))),
+        (os.path.join('share', package_name, 'models'), glob(os.path.join(package_name, 'models', '*.onnx'))),
     ],
     install_requires=[
         'setuptools',
+        'ament_index_python',
+        'onnxruntime',
+        'opencv-python',
         'transforms3d',
     ],
     zip_safe=True,
@@ -38,11 +42,12 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'color_filter = puzzlebot_minichallenge5.color_filter:main',
-            'Controller = puzzlebot_minichallenge5.Controller:main',
-            'LineFollowerReal = puzzlebot_minichallenge5.LineFollowerReal:main',
-            'LineFollower = puzzlebot_minichallenge5.LineFollower:main',
-            'TrafficLightDetector = puzzlebot_minichallenge5.TrafficLightDetector:main',
+            'TrafficLightImageTaker = puzzlebot_finalchallenge.TrafficLightImageTaker:main',
+            'color_filter = puzzlebot_finalchallenge.color_filter:main',
+            'Controller = puzzlebot_finalchallenge.Controller:main',
+            'LineFollowerReal = puzzlebot_finalchallenge.LineFollowerReal:main',
+            'LineFollower = puzzlebot_finalchallenge.LineFollower:main',
+            'TrafficLightDetector = puzzlebot_finalchallenge.TrafficLightDetector:main',
         ],
     },
 )
