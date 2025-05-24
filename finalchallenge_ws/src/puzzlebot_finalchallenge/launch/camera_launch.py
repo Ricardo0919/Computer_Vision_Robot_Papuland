@@ -23,9 +23,10 @@ def generate_launch_description():
         output='screen',
         parameters=[
             {'mode': 'real'},        # Modo de operación: 'sim' o 'real'
-            {'max_pixels': 50},     # Área mínima para detectar un objeto
-            {'max_area': 200},      # Área máxima para detectar un objeto
-            {'roi_ratio': 100}      # Proporción del área de interés respecto a la imagen
+            {'max_pixels': 50},      # Área mínima para detectar un objeto
+            {'max_area': 200},       # Área máxima para detectar un objeto
+            {'roi_ratio': 130},      # Proporción del área de interés respecto a la imagen
+            {'roi_left': 30},        # Última columna ROI-izq (0-159)]
         ]
     )
 
