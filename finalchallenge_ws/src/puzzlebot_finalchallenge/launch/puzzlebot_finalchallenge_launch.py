@@ -21,20 +21,21 @@ def generate_launch_description():
         executable='Controller',
         emulate_tty=True,
         output='screen',
-        #parameters=[
-        #    {'max_speed': 0.1} # Límite de máxima velocidad del robot
-        #]
+        parameters=[
+            {'v_max': 0.2} # Límite de máxima velocidad del robot
+        ]
     )
 
     # Nodo que detecta la línea a seguir
     LineFollower = Node(
-        name="LineFollowerPP",
+        name="LineFollower",
         package='puzzlebot_finalchallenge',
-        executable='LineFollowerPP',
+        executable='LineFollower',
         emulate_tty=True,
         output='screen',
         parameters=[
-            {'mode': 'real'}  # Modo de operación: 'sim' o 'real'
+            {'mode': 'real'},  # Modo de operación: 'sim' o 'real'
+            {'roi_ratio': 20}
         ]
     )
 

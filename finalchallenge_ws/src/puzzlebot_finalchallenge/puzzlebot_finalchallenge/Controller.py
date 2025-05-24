@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 # ------------------------------------------------------------------------------
-# Controller – línea + semáforo, velocidad continua y anticipada
+# Proyecto: Puzzlebot Final Challenge - Controller – línea + semáforo, velocidad continua y anticipada
+# Materia: Implementación de Robótica Inteligente
+# Fecha: 12 de junio de 2025
+# Alumnos:
+#   - Jonathan Arles Guevara Molina  | A01710380
+#   - Ezzat Alzahouri Campos         | A01710709
+#   - José Ángel Huerta Ríos         | A01710607
+#   - Ricardo Sierra Roa             | A01709887
 # ------------------------------------------------------------------------------
 
 import rclpy
