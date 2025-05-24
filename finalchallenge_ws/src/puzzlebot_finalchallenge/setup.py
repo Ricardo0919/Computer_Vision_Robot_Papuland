@@ -47,6 +47,7 @@ setup(
             'Controller = puzzlebot_finalchallenge.Controller:main',
             'LineFollower = puzzlebot_finalchallenge.LineFollower:main',
             'TrafficLightDetector = puzzlebot_finalchallenge.TrafficLightDetector:main',
+            'TrafficLightDetectorCNN = puzzlebot_finalchallenge.TrafficLightDetectorCNN:main',
         ],
     },
 )

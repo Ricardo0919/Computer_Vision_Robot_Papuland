@@ -123,7 +123,7 @@ class LineFollower(Node):
 
         # 7. Publicar resultados
         self.pub_error.publish(Float32(data=error))
-        self.get_logger().info(f'Error: {error:.2f}')
+        #self.get_logger().info(f'Error: {error:.2f}')
         self.pub_img.publish(self.bridge.cv2_to_imgmsg(output_img, 'bgr8'))
 
 def main(args=None):

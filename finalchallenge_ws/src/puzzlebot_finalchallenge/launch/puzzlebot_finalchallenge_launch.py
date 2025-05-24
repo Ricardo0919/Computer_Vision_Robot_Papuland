@@ -35,7 +35,7 @@ def generate_launch_description():
         output='screen',
         parameters=[
             {'mode': 'real'},  # Modo de operación: 'sim' o 'real'
-            {'roi_ratio': 20}
+            {'roi_ratio': 20}  # Proporción del área de interés respecto a la imagen
         ]
     )
 
@@ -46,10 +46,6 @@ def generate_launch_description():
         executable='TrafficLightDetector',
         emulate_tty=True,
         output='screen',
-        parameters=[
-            {'mode': 'sim'},  # Modo de operación: 'sim' o 'real'
-            {'area': 600}     # Área mínima para detectar un objeto
-        ]
     )
 
     # Nodo que lanza la interfaz gráfica de rqt_image_view para visualizar la imagen de lineas detectadasq
@@ -77,6 +73,6 @@ def generate_launch_description():
     )
 
     # Descripción de lanzamiento (solo con nodos activos por defecto)
-    l_d = LaunchDescription([LineFollower, Controller, rqt_image_view_line])
+    l_d = LaunchDescription([LineFollower, Controller, TrafficLightDetector, rqt_image_view_line, rqt_image_view_color])
 
     return l_d
