@@ -42,10 +42,10 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'LineFollowerPP = puzzlebot_finalchallenge.LineFollowerPP:main',
             'TrafficLightImageTaker = puzzlebot_finalchallenge.TrafficLightImageTaker:main',
             'color_filter = puzzlebot_finalchallenge.color_filter:main',
             'Controller = puzzlebot_finalchallenge.Controller:main',
-            'LineFollowerReal = puzzlebot_finalchallenge.LineFollowerReal:main',
             'LineFollower = puzzlebot_finalchallenge.LineFollower:main',
             'TrafficLightDetector = puzzlebot_finalchallenge.TrafficLightDetector:main',
         ],

@@ -18,7 +18,7 @@ import cv2
 import os
 
 # Cambia esto por tu clase actual ('red', 'green', 'yellow', 'off')
-CURRENT_CLASS = 'green'
+CURRENT_CLASS = 'red'
 
 # Carpeta destino
 SAVE_PATH = f'/home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/finalchallenge_ws/CNN_Traffic_Light/TrafficLightImages/{CURRENT_CLASS}'
@@ -33,7 +33,7 @@ class ImageSaver(Node):
             self.listener_callback,
             10)
         self.bridge = CvBridge()
-        self.image_count = 0
+        self.image_count = 702
 
     def listener_callback(self, msg):
         cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')

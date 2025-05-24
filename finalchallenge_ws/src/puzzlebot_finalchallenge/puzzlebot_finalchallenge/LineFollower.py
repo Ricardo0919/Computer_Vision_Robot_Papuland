@@ -1,149 +1,134 @@
 #!/usr/bin/env python3
 # ------------------------------------------------------------------------------
-# Proyecto: Mini Challenge 5 - Nodo de detección de línea (3 líneas con filtro de negro)
-# Materia: Implementación de Robótica Inteligente
-# Fecha: 21 de mayo de 2025
-# Alumno:
-#   - Ricardo Sierra Roa             | A01709887
+# Histogram Line Follower – con filtros antifalso-positivo
 # ------------------------------------------------------------------------------
-
-import rclpy
-from rclpy.node import Node
-import cv2
-import numpy as np
-from cv_bridge import CvBridge
-from sensor_msgs.msg import Image
-from std_msgs.msg import Float32
+import rclpy, cv2, numpy as np
+from rclpy.node        import Node
+from cv_bridge         import CvBridge
+from sensor_msgs.msg   import Image
+from std_msgs.msg      import Float32
 
 class LineFollower(Node):
     def __init__(self):
         super().__init__('LineFollower')
-        self.bridge = CvBridge()
-        # Bandera para saber si ya se recibió una imagen
-        self.image_received_flag = False
+        self.bridge, self.image_ok = CvBridge(), False
+        self.prev_cx = None
 
-        # Declarar y obtener el parámetro de modo ('sim' para simulación o 'real' para físico)
-        self.declare_parameter('mode', 'sim')
-        mode = self.get_parameter('mode').get_parameter_value().string_value
+        # ───────── Parámetros tunables ─────────
+        self.declare_parameter('mode',         'real')
+        self.declare_parameter('gray_thresh',     95)
+        self.declare_parameter('roi_ratio',     0.75)  # 80 % inferior
+        self.declare_parameter('min_pixels',     600)  # pico mínimo
+        self.declare_parameter('smooth_cols',      5)
+        # ─ filtros anti-salto
+        self.declare_parameter('win_px',        120)   # anchura de ventana de búsqueda
+        self.declare_parameter('jump_px',        80)   # salto máximo permitido
+        self.declare_parameter('min_run',        15)   # alto mínimo de la “barra” negra
+        # ---------------------------------------
 
-        # Seleccionar el tópico de la cámara dependiendo del modo
-        if mode == 'real':
-            topic_name = 'video_source/raw'
-        elif mode == 'sim':
-            topic_name = 'camera'
-        else:
-            self.get_logger().warn(f'Modo "{mode}" no reconocido. Usando "sim" por defecto.')
-            topic_name = 'camera'
+        topic_cam = 'video_source/raw' if self.get_parameter('mode').value == 'real' else 'camera'
+        self.sub = self.create_subscription(Image, topic_cam, self.cb_img, 10)
+        self.pub_err  = self.create_publisher(Float32, '/line_follower_data', 10)
+        self.pub_img  = self.create_publisher(Image,  '/processed_line_image', 10)
+        self.pub_mask = self.create_publisher(Image,  '/line_mask', 10)
 
-        # Suscripción a la imagen de la cámara
-        self.sub = self.create_subscription(Image, topic_name, self.camera_callback, 10)
-        
-        # Publicadores:
-        # Publica el error de posición respecto al centro de la imagen
-        self.pub_error = self.create_publisher(Float32, '/line_follower_data', 10)
-        # Publica la imagen procesada con anotaciones
-        self.pub_img = self.create_publisher(Image, '/processed_line_image', 10)
+        self.create_timer(0.10, self.cb_timer)
+        self.get_logger().info('📸 Histogram LineFollower (robust) ON')
 
-        # Timer para procesar imágenes a 10 Hz
-        dt = 0.1
-        self.timer = self.create_timer(dt, self.timer_callback)
-
-        self.get_logger().info(f'📸 LineFollower Node iniciado en modo: {mode}')
-
-    def camera_callback(self, msg):
-        # Convierte el mensaje ROS (sensor_msgs/Image) a imagen OpenCV (BGR)
+    # ---------- Callbacks ----------
+    def cb_img(self, msg):
         try:
-            self.cv_img = self.bridge.imgmsg_to_cv2(msg, "bgr8")
-            self.image_received_flag = True
-        except:
-            self.get_logger().warning('⚠️ No se pudo obtener una imagen')
+            self.cv_img = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
+            self.image_ok = True
+        except Exception as e:
+            self.get_logger().warning(f'⚠️ Img error: {e}')
 
-    def timer_callback(self):
-        # Solo procesa si ya se recibió una imagen
-        if self.image_received_flag:
-            self.process_image()
+    def cb_timer(self):
+        if self.image_ok:
+            self.process()
 
-    def process_image(self):
-        # Conversión a HSV para filtrar color negro
-        hsv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_BGR2HSV)
+    # ---------- Procesado principal ----------
+    def process(self):
+        img  = self.cv_img
+        h, w = img.shape[:2]
+        img_cx = w // 2
 
-        # Obtener el modo desde el parámetro
-        mode = self.get_parameter('mode').get_parameter_value().string_value
+        # 1) ROI
+        roi_y0 = int(self.get_parameter('roi_ratio').value * h)
+        roi    = img[roi_y0:, :]
 
-        if mode == 'real':
-            lower_black = np.array([0, 0, 3])
-            upper_black = np.array([180, 67, 78])
-        else:  # simulado
-            lower_black = np.array([0, 0, 0])
-            upper_black = np.array([180, 255, 50])
+        # 2) Máscara
+        thr  = self.get_parameter('gray_thresh').value
+        gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+        _, mask = cv2.threshold(gray, thr, 255, cv2.THRESH_BINARY_INV)
+        self.pub_mask.publish(self.bridge.cv2_to_imgmsg(mask, 'mono8'))
 
-        mask = cv2.inRange(hsv_img, lower_black, upper_black)
+        # 3) Histograma vertical (suavizado)
+        col_sum = mask.sum(axis=0).astype(np.float32)
+        k = int(self.get_parameter('smooth_cols').value)
+        if k > 1:
+            col_sum = np.convolve(col_sum, np.ones(k)/k, mode='same')
 
-        # Aplicar morfología para limpiar la máscara
-        mask = cv2.erode(mask, None, iterations=2)
-        mask = cv2.dilate(mask, None, iterations=2)
-
-        # Detectar contornos en la máscara binaria para las líneas negras
-        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        output_img = self.cv_img.copy()  # Imagen para visualización
-
-        # Filtrar contornos pequeños para evitar ruido
-        contours = [cnt for cnt in contours if cv2.contourArea(cnt) > 500]
-
-        # Ordenar contornos por área (los más relevantes primero)
-        contours = sorted(contours, key=cv2.contourArea, reverse=True)
-
-        line_centers = []
-
-        # Obtener centroides de hasta tres contornos más grandes (tres líneas)
-        # (Detectar y calcular los centros de las tres líneas más grandes)
-        for contour in contours[:3]:
-            M = cv2.moments(contour)
-            if M["m00"] > 0:
-                cx = int(M["m10"] / M["m00"])
-                cy = int(M["m01"] / M["m00"])
-                line_centers.append((cx, cy))
-                cv2.drawContours(output_img, [contour], -1, (0, 255, 0), 2)  # Verde para contornos
-
-        # Ordenar los centros de las líneas por su posición en X (de izquierda a derecha)
-        line_centers.sort(key=lambda x: x[0])
-        image_center = self.cv_img.shape[1] // 2
-
-        # Seleccionar el centroide de referencia según la cantidad de líneas detectadas
-        if len(line_centers) == 3:
-            # Caso ideal: usar la línea del centro
-            cx, cy = line_centers[1]
-        
-        elif len(line_centers) == 2:
-            # De las dos, elige la que está más cerca de la cámara
-            # (la que tiene el centroide con mayor valor en Y)
-            cx, cy = max(line_centers, key=lambda pt: pt[1])
-
+        # 4) Ventana de búsqueda alrededor de prev_cx
+        win_px   = self.get_parameter('win_px').value
+        if self.prev_cx is not None:
+            x_min = max(0, self.prev_cx - win_px)
+            x_max = min(w-1, self.prev_cx + win_px)
         else:
-            # No hay suficientes líneas para calcular un error confiable
-            #self.get_logger().warning('⚠️ No se detectaron suficientes líneas para calcular el error.')
-            self.pub_error.publish(Float32(data=np.nan))
-            self.pub_img.publish(self.bridge.cv2_to_imgmsg(output_img, 'bgr8'))
+            x_min, x_max = 0, w-1
+
+        # 5) Seleccionar columna candidata con condición min_run
+        min_run = self.get_parameter('min_run').value
+        best_cx, best_val = None, 0
+        for x in range(x_min, x_max+1):
+            if col_sum[x] > best_val:
+                # alto vertical de la barra
+                run = np.count_nonzero(mask[:, x])
+                if run >= min_run:
+                    best_val, best_cx = col_sum[x], x
+
+        # ¿hay pista?
+        if best_cx is None or best_val < self.get_parameter('min_pixels').value:
+            self.pub_err.publish(Float32(data=float('nan')))
+            self.pub_img.publish(self.bridge.cv2_to_imgmsg(img, 'bgr8'))
             return
 
-        # Calcular el error como la distancia horizontal del centro de la línea al centro de la imagen
-        error = float(cx - image_center)
-        self.pub_error.publish(Float32(data=error))
+        cx = best_cx
 
-        # Anotaciones visuales para debugging
-        cv2.line(output_img, (image_center, 0), (image_center, self.cv_img.shape[0]), (0, 255, 255), 2)  # Línea amarilla (centro)
-        cv2.circle(output_img, (cx, cy), 7, (0, 0, 255), -1)  # Punto rojo (centro de la línea central)
-        cv2.line(output_img, (cx, cy), (image_center, cy), (0, 255, 255), 2)  # Línea amarilla (error)
-        cv2.putText(output_img, f'Error: {error:.2f}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+        # 6) Rechazo de salto brusco
+        jump_px = self.get_parameter('jump_px').value
+        if self.prev_cx is not None and abs(cx - self.prev_cx) > jump_px:
+            # si el pico antiguo sigue “fuerte”, mantenemos prev_cx
+            if col_sum[self.prev_cx] > 0.5 * best_val:
+                cx = self.prev_cx
 
-        #self.get_logger().info(f'📐 Error de línea central: {error}')
+        self.prev_cx = cx  # actualizar memoria
 
-        # Publicar la imagen procesada
-        self.pub_img.publish(self.bridge.cv2_to_imgmsg(output_img, 'bgr8'))
+        # 7) Obtener cy para dibujar
+        rows = np.where(mask[:, cx] > 0)[0]
+        cy = roi_y0 + (int(np.median(rows)) if len(rows) else mask.shape[0]//2)
 
+        # 8) Dibujos
+        out = img.copy()
+        cv2.line(out, (img_cx, 0), (img_cx, h), (0, 255, 255), 1)
+        cv2.circle(out, (cx, cy), 4, (0, 0, 255), -1)
+        cv2.line(out, (cx, cy), (img_cx, cy), (0, 255, 255), 1)
+
+        # 9) Publicar error
+        error = float(cx - img_cx)
+        self.pub_err.publish(Float32(data=error))
+        cv2.putText(out, f'Err:{error:.1f}', (10, 15),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 0), 1)
+
+        self.pub_img.publish(self.bridge.cv2_to_imgmsg(out, 'bgr8'))
+
+# ---------------- main ----------------
 def main(args=None):
     rclpy.init(args=args)
     node = LineFollower()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()

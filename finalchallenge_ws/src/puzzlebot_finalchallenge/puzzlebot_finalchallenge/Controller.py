@@ -1,142 +1,129 @@
 #!/usr/bin/env python3
 # ------------------------------------------------------------------------------
-# Proyecto: Mini Challenge 5 - Nodo Controlador en base a seguidor de línea y 
-#                              detección de colores de semáforo
-# Materia: Implementación de Robótica Inteligente
-# Fecha: 21 de mayo de 2025
-# Alumno:
-#   - Ricardo Sierra Roa             | A01709887
+# Controller – línea + semáforo, velocidad continua y anticipada
 # ------------------------------------------------------------------------------
 
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
-from std_msgs.msg import Float32
+from std_msgs.msg     import Float32, String
 import numpy as np
-from std_msgs.msg import String
 
 
 class Controller(Node):
     def __init__(self):
         super().__init__('Controller')
 
-        # Inicialización de variables de control
-        self.traffic_light_state = "none"       # Estado actual del semáforo
-        self.error = 0.0                        # Error de línea
-        self.kp_base = 0.004                    # Ganancia proporcional base
-        self.kd = 0.0015                        # Ganancia derivativa
-        self.prev_error = 0.0                   # Error anterior (para derivada)
-        self.prev_time = self.get_clock().now() # Tiempo anterior
-        self.valid_error = False                # Validez del error recibido
+        # ─────── Parámetros ROS (puedes sobreescribir en YAML) ───────
+        self.declare_parameter('kp_base', 0.0035)
+        self.declare_parameter('kd',      0.0015)
+        self.declare_parameter('v_max',   0.20)   # m/s en recta
+        self.declare_parameter('v_min',   0.05)   # m/s en curva cerrada
+        self.declare_parameter('ramp_step', 0.01) # m/s por tick (20 Hz)
+        self.declare_parameter('alpha',     0.45)  # filtro derror
+        self.declare_parameter('max_error', 40.0) # px (para clip)
 
-        # Declarar y obtener el parámetro de limite de máxima velocidad
-        self.declare_parameter('max_speed', 0.6)  # Valor por defecto
-        self.max_speed = self.get_parameter('max_speed').value
+        # ─────── Variables internas ───────
+        self.error, self.prev_error = 0.0, 0.0
+        self.derror = 0.0
+        self.prev_time = self.get_clock().now()
+        self.valid_error = False
 
-        # Suscripción al error de la línea
-        self.sub = self.create_subscription(Float32, '/line_follower_data', self.error_callback, 10)
-        
-        # Publicador de comandos de velocidad
-        self.pub = self.create_publisher(Twist, '/cmd_vel', 10)
+        self.traffic_light_state = "none"
+        self.current_speed = 0.0   # empieza parado
 
-        # Suscripción al detector de color del semáforo
-        self.create_subscription(String, '/color_detector', self.color_callback, 10)
+        # Suscripciones / publicación
+        self.create_subscription(Float32, '/line_follower_data', self.cb_error, 10)
+        self.create_subscription(String,  '/color_detector',     self.cb_color, 10)
+        self.pub_cmd = self.create_publisher(Twist, '/cmd_vel', 10)
 
-        # Timer de control (20 Hz)
-        dt = 0.05
-        self.timer = self.create_timer(dt, self.timer_callback)
+        self.create_timer(0.05, self.cb_timer)  # 20 Hz
+        self.get_logger().info('🚗 Controller continuo ON')
 
-        self.get_logger().info('🚗 Controller (PD Adaptativo) Node inicado')
-
-    def error_callback(self, msg):
-        # Callback para el error de línea.
-        # Valida el dato recibido y lo guarda si es válido.
-        if np.isnan(msg.data):
-            self.valid_error = False
-        else:
-            self.valid_error = True
+    # ---------- Callbacks ----------
+    def cb_error(self, msg: Float32):
+        self.valid_error = not np.isnan(msg.data)
+        if self.valid_error:
             self.error = msg.data
 
-    def timer_callback(self):
-        # Callback periódico del controlador.
-        # Aplica control PD adaptativo sobre el error de línea y responde al estado
-        # del semáforo para modificar la velocidad lineal y angular del robot.
+    def cb_color(self, msg: String):
+        if msg.data in ("stop", "slow", "continue"):
+            self.traffic_light_state = msg.data
+        self.get_logger().info(f'🎨 Semáforo: {self.traffic_light_state}')
+
+    # ---------- Bucle de control ----------
+    def cb_timer(self):
         now = self.get_clock().now()
         dt = (now - self.prev_time).nanoseconds * 1e-9
         self.prev_time = now
-
-        # 1) Sin referencia de línea = detener
-        if not self.valid_error:
-            self.pub.publish(Twist())
-            self.get_logger().info('🛑 Sin referencia de línea – robot detenido')
-            return
-        
-        # 2) Semáforo rojo = detener hasta ver verde
-        if self.traffic_light_state == "stop":
-            self.pub.publish(Twist())
-            self.get_logger().info('🚦 Rojo: detenido')
-            return
-
         if dt <= 0:
             return
 
-        # Limitar el rango del error
-        max_error = 40.0
-        self.error = np.clip(self.error, -max_error, max_error)
+        # Sin línea → parada
+        if not self.valid_error:
+            self.publish_twist(0.0, 0.0)
+            return
 
-        # Control PD Adaptativo para el ángulo
-        # Ganancia proporcional adaptativa (mayor para errores grandes, menor para errores pequeños)
-        kp = self.kp_base * (1 + (abs(self.error) / max_error))
+        # ----- PID para ángulo -----
+        max_err = self.get_parameter('max_error').value
+        err = np.clip(self.error, -max_err, max_err)
 
-        # Cálculo del término derivativo
-        derivative = (self.error - self.prev_error) / dt
-        self.prev_error = self.error
+        kp = self.get_parameter('kp_base').value * (1 + abs(err)/max_err)
+        kd = self.get_parameter('kd').value
 
-        # Control angular (negativo para corregir en dirección opuesta al error)
-        angular_z = -(kp * self.error + self.kd * derivative)
+        deriv = (err - self.prev_error) / dt
+        self.prev_error = err
 
-        # Control Lineal Proporcional (disminuye al aumentar el error)
-        max_speed = self.max_speed  # Velocidad máxima
-        min_speed = 0.05            # Velocidad mínima
-        # Disminuye la velocidad lineal suavemente si el error es grande
-        linear_x = max(max_speed - abs(self.error) * 0.001, min_speed)
+        # filtro
+        alpha = self.get_parameter('alpha').value
+        self.derror = alpha * deriv + (1 - alpha) * self.derror
 
-        # 3) Semáforo amarillo = ir despacio
-        if self.traffic_light_state == "slow":
-            linear_x = min(linear_x, 0.1)
+        ang = -(kp * err + kd * deriv)
+        ang = float(np.clip(ang, -1.2, 1.2))
 
-        # Limitar las velocidades para suavizar movimientos
-        angular_z = np.clip(angular_z, -1.2, 1.2)
-        linear_x = np.clip(linear_x, min_speed, max_speed)
+        # ----- Velocidad lineal continua -----
+        v_max = self.get_parameter('v_max').value
+        v_min = self.get_parameter('v_min').value
+        k_err   = (v_max - v_min) / max_err      # influencia del error
+        k_derr  = 0.001                          # influencia de la derivada
 
-        # Publicar comando de velocidad
-        cmd = Twist()
-        cmd.linear.x = linear_x
-        cmd.angular.z = angular_z
-        self.pub.publish(cmd)
+        v_target = v_max - k_err*abs(err) - k_derr*abs(self.derror)
+        v_target = np.clip(v_target, v_min, v_max)
 
-        self.get_logger().info(f'🚦 {self.traffic_light_state.upper()} - Error {self.error:.1f}  lin {linear_x:.2f}  ang {angular_z:.2f}')
-    
-    def color_callback(self, msg):
-        # Función que actualiza el estado del semáforo según el mensaje recibido.
-        
-        action = msg.data  # “stop”, “slow”, “continue” o “none”
+        # Semáforo
+        if self.traffic_light_state == "stop":
+            v_target = 0.0
+        elif self.traffic_light_state == "slow":
+            v_target = min(v_target, 0.10)
 
-        # Persistencia de estados
-        if action == "stop":                 # rojo
-            self.traffic_light_state = "stop"
-        elif action == "slow":               # amarillo
-            if self.traffic_light_state != "stop":
-                self.traffic_light_state = "slow"
-        elif action == "continue":           # verde
-            self.traffic_light_state = "continue"
+        # Rampa
+        step = self.get_parameter('ramp_step').value
+        if self.current_speed < v_target:
+            self.current_speed = min(self.current_speed + step, v_target)
+        else:
+            self.current_speed = max(self.current_speed - step, v_target)
 
-        self.get_logger().info(f"🎨 Semáforo: {self.traffic_light_state}")
+        self.publish_twist(self.current_speed, ang)
+
+    # ---------- Util ----------
+    def publish_twist(self, v, w):
+        msg = Twist()
+        msg.linear.x  = v
+        msg.angular.z = w
+        self.pub_cmd.publish(msg)
+        self.get_logger().info(
+            f'Err {self.error:+5.1f}  dErr {self.derror:+6.1f}  '
+            f'v {v:0.2f}  ang {w:0.2f}  ({self.traffic_light_state})'
+        )
 
 
+# ---------------- main ----------------
 def main(args=None):
     rclpy.init(args=args)
     node = Controller()
     rclpy.spin(node)
-    node.destroy_node()
     rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
