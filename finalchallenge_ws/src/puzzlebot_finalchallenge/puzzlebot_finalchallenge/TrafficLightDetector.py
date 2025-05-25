@@ -74,11 +74,10 @@ class TrafficLightDetector(Node):
         # Copia profunda para poder ajustar un lado sin afectar el otro
         self.hsv_ranges_left = {
             "Rojo": [
-                {"lower": np.array([  0,  80, 120]), "upper": np.array([ 10, 255, 255])},
-                {"lower": np.array([170,  80, 120]), "upper": np.array([179, 255, 255])}
+                {"lower": np.array([  150,  15, 105]), "upper": np.array([ 175, 255, 255])},
             ],
             "Amarillo": [
-                {"lower": np.array([ 143,  0, 152]), "upper": np.array([ 180, 42, 206])}
+                {"lower": np.array([ 15,  35, 110]), "upper": np.array([ 35, 255, 255])},
             ],
             "Verde": [
                 {"lower": np.array([ 40,  43, 000]), "upper": np.array([ 90, 255, 255])}

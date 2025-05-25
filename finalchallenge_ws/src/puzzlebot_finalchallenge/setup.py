@@ -42,6 +42,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'ColorDetectorPP = puzzlebot_finalchallenge.ColorDetectorPP:main',
             'TrafficLightImageTaker = puzzlebot_finalchallenge.TrafficLightImageTaker:main',
             'color_filter = puzzlebot_finalchallenge.color_filter:main',
             'Controller = puzzlebot_finalchallenge.Controller:main',
