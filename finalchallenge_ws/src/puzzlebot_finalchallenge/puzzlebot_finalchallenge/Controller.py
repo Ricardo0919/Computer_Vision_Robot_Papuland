@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ------------------------------------------------------------------------------
-# Proyecto: Puzzlebot Final Challenge - Controller – línea + semáforo, velocidad continua y anticipada
+# Proyecto: Puzzlebot Final Challenge - Nodo Controlador (PD) en base al seguidor de linea y color de semaforo 
 # Materia: Implementación de Robótica Inteligente
 # Fecha: 12 de junio de 2025
 # Alumnos:
@@ -15,6 +15,8 @@ from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from std_msgs.msg     import Float32, String
 import numpy as np
+import signal  
+import sys 
 
 
 class Controller(Node):
@@ -44,6 +46,10 @@ class Controller(Node):
         self.create_subscription(String,  '/color_detector',     self.cb_color, 10)
         self.pub_cmd = self.create_publisher(Twist, '/cmd_vel', 10)
 
+        # Handle shutdown gracefully 
+
+        signal.signal(signal.SIGINT, self.shutdown_function) # When Ctrl+C is pressed, call self.shutdown_function 
+
         self.create_timer(0.05, self.cb_timer)  # 20 Hz
         self.get_logger().info('🚗 Controller continuo ON')
 
@@ -54,7 +60,7 @@ class Controller(Node):
             self.error = msg.data
 
     def cb_color(self, msg: String):
-        if msg.data in ("stop", "slow", "continue"):
+        if msg.data in ("red", "yellow", "green"):
             self.traffic_light_state = msg.data
         self.get_logger().info(f'🎨 Semáforo: {self.traffic_light_state}')
 
@@ -98,9 +104,9 @@ class Controller(Node):
         v_target = np.clip(v_target, v_min, v_max)
 
         # Semáforo
-        if self.traffic_light_state == "stop":
+        if self.traffic_light_state == "red":
             v_target = 0.0
-        elif self.traffic_light_state == "slow":
+        elif self.traffic_light_state == "yellow":
             v_target = min(v_target, 0.10)
 
         # Rampa
@@ -123,14 +129,23 @@ class Controller(Node):
             f'v {v:0.2f}  ang {w:0.2f}  ({self.traffic_light_state})'
         )
 
+    def shutdown_function(self, signum, frame): 
+        # Handle shutdown gracefully 
+        # This function will be called when Ctrl+C is pressed 
+        # It will stop the robot and shutdown the node 
+        self.get_logger().info("Shutting down. Stopping robot...") 
+        stop_twist = Twist()  # All zeros to stop the robot 
+        self.pub_cmd.publish(stop_twist) # publish it to stop the robot before shutting down 
+        rclpy.shutdown() # Shutdown the node 
+        sys.exit(0) # Exit the program 
 
 # ---------------- main ----------------
-def main(args=None):
-    rclpy.init(args=args)
-    node = Controller()
-    rclpy.spin(node)
-    rclpy.shutdown()
+def main(args=None): 
+    rclpy.init(args=args) 
+    my_node=Controller() 
+    rclpy.spin(my_node) 
+    my_node.destroy_node() 
+    rclpy.shutdown() 
 
-
-if __name__ == '__main__':
-    main()
+if __name__ == '__main__': 
+    main() 

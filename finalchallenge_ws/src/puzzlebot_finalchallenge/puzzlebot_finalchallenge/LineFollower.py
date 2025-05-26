@@ -9,6 +9,7 @@
 #   - José Ángel Huerta Ríos         | A01710607
 #   - Ricardo Sierra Roa             | A01709887
 # ------------------------------------------------------------------------------
+
 import rclpy
 from rclpy.node import Node
 import cv2

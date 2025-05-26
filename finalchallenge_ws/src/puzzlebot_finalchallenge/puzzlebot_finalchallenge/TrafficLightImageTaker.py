@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ------------------------------------------------------------------------------
-# Proyecto: Final Challenge - Nodo de captura de imágenes del semáforo
+# Proyecto: Puzzlebot Final Challenge - Nodo de captura de imágenes del semáforo
 # Materia: Implementación de Robótica Inteligente
 # Fecha: 12 de junio de 2025
 # Alumnos:
@@ -18,7 +18,7 @@ import cv2
 import os
 
 # Cambia esto por tu clase actual ('red', 'green', 'yellow', 'off')
-CURRENT_CLASS = 'green_valid'
+CURRENT_CLASS = 'green'
 
 # Carpeta destino
 SAVE_PATH = f'/home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/finalchallenge_ws/CNN_Traffic_Light/TrafficLightImages/{CURRENT_CLASS}'

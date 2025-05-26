@@ -32,5 +32,11 @@ cmake-build-*/
 puzzlebot_description/
 puzzlebot_gazebo/
 
-TrafficLightImages/
-**/TrafficLightImages/
+CNN/dataset/
+**/CNN/dataset/
+
+CNN/TrafficLightPytorch/dataset/
+**/CNN/TrafficLightPytorch/dataset/
+
+CNN/BaseModelTrafficLight/dataset/
+**/CNN/BaseModelTrafficLight/dataset/

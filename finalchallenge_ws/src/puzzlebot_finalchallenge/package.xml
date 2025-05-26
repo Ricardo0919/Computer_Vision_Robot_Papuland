@@ -14,9 +14,12 @@
 
 
   <!-- Dependencias nuevas para inferencia con ONNX y OpenCV -->
-  <exec_depend>onnxruntime</exec_depend>
-  <exec_depend>cv_bridge</exec_depend>
   <exec_depend>opencv</exec_depend>
+  <exec_depend>python3-opencv</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>ultralytics</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+
 
 
   <!-- Dependencias para generar mensajes personalizados -->

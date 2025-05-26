@@ -1,3 +1,0 @@
-ros2 launch ros_deep_learning video_source.ros2.launch
-
-ros2 launch puzzlebot_ros micro_ros_agent.launch.py

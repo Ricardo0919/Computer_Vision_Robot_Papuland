@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# Proyecto: Puzzlebot Final Challenge - launch file
+# Proyecto: Puzzlebot Final Challenge - Semaforo launch file
 # Materia: Implementación de Robótica Inteligente
 # Fecha: 12 de junio de 2025
 # Alumnos:
@@ -21,13 +21,6 @@ def generate_launch_description():
         executable='TrafficLightDetector',
         emulate_tty=True,
         output='screen',
-        parameters=[
-            {'mode': 'real'},        # Modo de operación: 'sim' o 'real'
-            {'max_pixels': 50},      # Área mínima para detectar un objeto
-            {'max_area': 200},       # Área máxima para detectar un objeto
-            {'roi_ratio': 130},      # Proporción del área de interés respecto a la imagen
-            {'roi_left': 30},        # Última columna ROI-izq (0-159)]
-        ]
     )
 
     # Nodo que lanza la interfaz gráfica de rqt_image_view para visualizar la imagen de colores detectados
@@ -37,9 +30,7 @@ def generate_launch_description():
         executable='rqt_image_view',
         emulate_tty=True,
         output='screen',
-        parameters=[
-            {'/processed_img'},  # Tópico de imagen procesada
-        ]
+        arguments=['/processed_img'] # Tópico de imagen procesada
     )
 
     # Descripción de lanzamiento (solo con nodos activos por defecto)

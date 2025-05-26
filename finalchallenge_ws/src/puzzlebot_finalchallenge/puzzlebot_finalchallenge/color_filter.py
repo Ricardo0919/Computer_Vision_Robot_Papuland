@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
 # ------------------------------------------------------------------------------
-# Nodo ROS2 para filtrar el color amarillo (u otro) usando HSV + autoajuste por clic
+# Proyecto: Puzzlebot Final Challenge - Nodo para filtrar color con camara de puzzlebot
+# Materia: Implementación de Robótica Inteligente
+# Fecha: 12 de junio de 2025
+# Alumnos:
+#   - Jonathan Arles Guevara Molina  | A01710380
+#   - Ezzat Alzahouri Campos         | A01710709
+#   - José Ángel Huerta Ríos         | A01710607
+#   - Ricardo Sierra Roa             | A01709887
 # ------------------------------------------------------------------------------
+
 import rclpy
 from rclpy.node import Node
 import cv2

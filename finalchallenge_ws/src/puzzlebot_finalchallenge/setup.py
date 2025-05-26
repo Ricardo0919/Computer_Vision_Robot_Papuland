@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
-# Proyecto: Mini Challenge 5 - setup.py
+# Proyecto: Puzzlebot Final Challenge - setup.py
 # Materia: Implementación de Robótica Inteligente
-# Fecha: 22 de abril de 2025
+# Fecha: 12 de junio de 2025
 # Alumnos:
 #   - Jonathan Arles Guevara Molina  | A01710380
 #   - Ezzat Alzahouri Campos         | A01710709
@@ -24,16 +24,19 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*launch.[pxy][yma]*'))),
-        (os.path.join('share', package_name, 'config'), glob(os.path.join('config', '*.[yma]*'))),
-        (os.path.join('share', package_name, 'models'), glob(os.path.join(package_name, 'models', '*.onnx'))),
+        (os.path.join('share', package_name, 'models'), glob(os.path.join(package_name, 'models', '*.pt'))),
     ],
     install_requires=[
         'setuptools',
         'ament_index_python',
-        'onnxruntime',
+        'rclpy',
+        'numpy',
+        'ultralytics',
         'opencv-python',
         'transforms3d',
+        'cv_bridge',
     ],
+
     zip_safe=True,
     maintainer='ricardosierra',
     maintainer_email='rickisierra03@gmail.com',
@@ -42,13 +45,11 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'ColorDetectorPP = puzzlebot_finalchallenge.ColorDetectorPP:main',
-            'TrafficLightImageTaker = puzzlebot_finalchallenge.TrafficLightImageTaker:main',
-            'color_filter = puzzlebot_finalchallenge.color_filter:main',
             'Controller = puzzlebot_finalchallenge.Controller:main',
             'LineFollower = puzzlebot_finalchallenge.LineFollower:main',
             'TrafficLightDetector = puzzlebot_finalchallenge.TrafficLightDetector:main',
-            'TrafficLightDetectorCNN = puzzlebot_finalchallenge.TrafficLightDetectorCNN:main',
+            'TrafficLightImageTaker = puzzlebot_finalchallenge.TrafficLightImageTaker:main',
+            'color_filter = puzzlebot_finalchallenge.color_filter:main',
         ],
     },
 )
