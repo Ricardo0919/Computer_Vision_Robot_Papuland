@@ -10,7 +10,7 @@
 #   - Ricardo Sierra Roa             | A01709887
 # ------------------------------------------------------------------------------
 
-import rclpyb
+import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from std_msgs.msg     import Float32, String
@@ -26,7 +26,7 @@ class Controller(Node):
         # ─────── Parámetros ROS (puedes sobreescribir en YAML) ───────
         self.declare_parameter('kp_base', 0.0035)
         self.declare_parameter('kd',      0.0015)
-        self.declare_parameter('v_max',   0.21)    # m/s en recta
+        self.declare_parameter('v_max',   0.22)    # m/s en recta
         self.declare_parameter('v_min',   0.04)   # m/s en curva cerrada
         self.declare_parameter('ramp_step', 0.01) # m/s por tick (20 Hz)
         self.declare_parameter('alpha',     0.45) # filtro derror
