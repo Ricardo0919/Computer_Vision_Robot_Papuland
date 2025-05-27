@@ -26,10 +26,10 @@ class Controller(Node):
         # ─────── Parámetros ROS (puedes sobreescribir en YAML) ───────
         self.declare_parameter('kp_base', 0.0035)
         self.declare_parameter('kd',      0.0015)
-        self.declare_parameter('v_max',   0.20)   # m/s en recta
-        self.declare_parameter('v_min',   0.05)   # m/s en curva cerrada
+        self.declare_parameter('v_max',   0.21)    # m/s en recta
+        self.declare_parameter('v_min',   0.04)   # m/s en curva cerrada
         self.declare_parameter('ramp_step', 0.01) # m/s por tick (20 Hz)
-        self.declare_parameter('alpha',     0.45)  # filtro derror
+        self.declare_parameter('alpha',     0.45) # filtro derror
         self.declare_parameter('max_error', 40.0) # px (para clip)
 
         # ─────── Variables internas ───────
@@ -107,7 +107,7 @@ class Controller(Node):
         if self.traffic_light_state == "red":
             v_target = 0.0
         elif self.traffic_light_state == "yellow":
-            v_target = min(v_target, 0.10)
+            v_target = min(v_target, 0.07)
 
         # Rampa
         step = self.get_parameter('ramp_step').value

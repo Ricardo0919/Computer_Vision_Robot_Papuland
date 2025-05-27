@@ -18,10 +18,10 @@ import cv2
 import os
 
 # Cambia esto por tu clase actual ('red', 'green', 'yellow', 'off')
-CURRENT_CLASS = 'green'
+CURRENT_CLASS = 'red_out'
 
 # Carpeta destino
-SAVE_PATH = f'/home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/finalchallenge_ws/CNN_Traffic_Light/TrafficLightImages/{CURRENT_CLASS}'
+SAVE_PATH = f'/home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/finalchallenge_ws/CNN/TrafficLight/dataset/{CURRENT_CLASS}'
 os.makedirs(SAVE_PATH, exist_ok=True)
 
 class ImageSaver(Node):

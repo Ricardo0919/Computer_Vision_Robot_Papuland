@@ -32,7 +32,7 @@ class YOLOv8TrafficLightDetector(Node):
         self.new_img = False
 
         # Publicadores
-        self.color_pub = self.create_publisher(String, 'detected_color', 10)
+        self.color_pub = self.create_publisher(String, 'color_detector', 10)
         self.image_pub = self.create_publisher(Image, 'processed_img', 10)
 
         # Temporizador
