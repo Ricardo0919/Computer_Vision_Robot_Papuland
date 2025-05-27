@@ -93,7 +93,7 @@ class YOLOv8TrafficLightDetector(Node):
             if detected and detected != self.prev_detected:
                 self.prev_detected = detected
                 self.color_pub.publish(String(data=detected))
-                self.get_logger().info(f'Color detectado: {detected}')
+                #self.get_logger().info(f'Color detectado: {detected}')
 
             # Publicar imagen anotada
             self.image_pub.publish(self.bridge.cv2_to_imgmsg(annotated_img, encoding='bgr8'))

@@ -40,6 +40,8 @@ class Controller(Node):
 
         self.traffic_light_state = "none"
         self.current_speed = 0.0   # empieza parado
+        self.ready_to_go = False  # Nueva bandera: solo se activa al recibir "green"
+
 
         # Suscripciones / publicación
         self.create_subscription(Float32, '/line_follower_data', self.cb_error, 10)
@@ -62,7 +64,12 @@ class Controller(Node):
     def cb_color(self, msg: String):
         if msg.data in ("red", "yellow", "green"):
             self.traffic_light_state = msg.data
+            # Activar solo una vez cuando llega el verde por primera vez
+            if msg.data == "green" and not self.ready_to_go:
+                self.ready_to_go = True
+                self.get_logger().info("🟢 ¡Semáforo verde recibido! Robot listo para avanzar.")
         self.get_logger().info(f'🎨 Semáforo: {self.traffic_light_state}')
+
 
     # ---------- Bucle de control ----------
     def cb_timer(self):
@@ -74,6 +81,16 @@ class Controller(Node):
 
         # Sin línea → parada
         if not self.valid_error:
+            self.publish_twist(0.0, 0.0)
+            return
+        
+        # Si el semáforo no está verde al iniciar, no avanzar
+        if not self.ready_to_go:
+            self.publish_twist(0.0, 0.0)
+            return
+        
+        # Si el semáforo es rojo, detener el robot
+        if self.traffic_light_state == "red":
             self.publish_twist(0.0, 0.0)
             return
 
@@ -104,9 +121,7 @@ class Controller(Node):
         v_target = np.clip(v_target, v_min, v_max)
 
         # Semáforo
-        if self.traffic_light_state == "red":
-            v_target = 0.0
-        elif self.traffic_light_state == "yellow":
+        if self.traffic_light_state == "yellow":
             v_target = min(v_target, 0.07)
 
         # Rampa
@@ -134,7 +149,7 @@ class Controller(Node):
         # This function will be called when Ctrl+C is pressed 
         # It will stop the robot and shutdown the node 
         self.get_logger().info("Shutting down. Stopping robot...") 
-        stop_twist = Twist()  # All zeros to stop the robot 
+        stop_twist = self.publish_twist(0.0, 0.0)  # All zeros to stop the robot 
         self.pub_cmd.publish(stop_twist) # publish it to stop the robot before shutting down 
         rclpy.shutdown() # Shutdown the node 
         sys.exit(0) # Exit the program 
