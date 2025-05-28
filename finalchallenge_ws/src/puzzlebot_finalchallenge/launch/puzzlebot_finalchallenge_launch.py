@@ -22,7 +22,7 @@ def generate_launch_description():
         emulate_tty=True,
         output='screen',
         parameters=[
-            {'v_max': 0.2} # Límite de máxima velocidad del robot
+            {'v_max': 0.18} # Límite de máxima velocidad del robot
         ]
     )
 
@@ -35,7 +35,9 @@ def generate_launch_description():
         output='screen',
         parameters=[
             {'mode': 'real'},  # Modo de operación: 'sim' o 'real'
-            {'roi_ratio': 20}  # Proporción del área de interés respecto a la imagen
+            {'roi_ratio': 15},  # Proporción del área de interés respecto a la imagen
+            {'roi_left': 20},   # Margen izquierdo del área de interés
+            {'roi_right': 20}   # Margen derecho del área de interés
         ]
     )
 
@@ -48,14 +50,14 @@ def generate_launch_description():
         output='screen',
     )
 
-    # Nodo que lanza la interfaz gráfica de rqt_image_view para visualizar la imagen de lineas detectadasq
+    # Nodo que lanza la interfaz gráfica de rqt_image_view para visualizar la imagen de lineas detectadas
     rqt_image_view_line = Node(
         name="rqt_image_view",
         package='rqt_image_view',
         executable='rqt_image_view',
         emulate_tty=True,
         output='screen',
-        arguments=['/processed_img'] # Tópico de imagen procesada
+        arguments=['/processed_line_image'] # Tópico de imagen procesada
     )
 
     # Nodo que lanza la interfaz gráfica de rqt_image_view para visualizar la imagen de colores detectados
