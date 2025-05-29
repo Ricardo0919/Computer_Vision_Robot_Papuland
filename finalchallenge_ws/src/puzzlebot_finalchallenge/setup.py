@@ -35,6 +35,7 @@ setup(
         'opencv-python',
         'transforms3d',
         'cv_bridge',
+        'scikit-fuzzy'
     ],
 
     zip_safe=True,
@@ -45,7 +46,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'Controller = puzzlebot_finalchallenge.Controller:main',
+            'ControllerPD = puzzlebot_finalchallenge.ControllerPD:main',
+            'ControllerFuzzy = puzzlebot_finalchallenge.ControllerFuzzy:main',
             'LineFollower = puzzlebot_finalchallenge.LineFollower:main',
             'TrafficLightDetector = puzzlebot_finalchallenge.TrafficLightDetector:main',
             'TrafficLightImageTaker = puzzlebot_finalchallenge.TrafficLightImageTaker:main',

@@ -19,13 +19,14 @@
   <exec_depend>python3-numpy</exec_depend>
   <exec_depend>ultralytics</exec_depend>
   <exec_depend>cv_bridge</exec_depend>
-
+  <exec_depend>scikit-fuzzy</exec_depend>
 
 
   <!-- Dependencias para generar mensajes personalizados -->
   <build_depend>rosidl_default_generators</build_depend>
   <exec_depend>rosidl_default_runtime</exec_depend>
   <exec_depend>ament_index_python</exec_depend>
+
 
   <!-- Dependencias para pruebas -->
   <test_depend>ament_copyright</test_depend>

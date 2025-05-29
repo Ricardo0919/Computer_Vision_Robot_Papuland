@@ -57,6 +57,7 @@ class LineFollower(Node):
             self.process_image()
 
     def process_image(self):
+        self.cv_img = cv2.resize(self.cv_img, (160, 120))
         gray_img = cv2.cvtColor(self.cv_img, cv2.COLOR_BGR2GRAY)
         _, mask = cv2.threshold(gray_img, 95, 255, cv2.THRESH_BINARY_INV)
         mask = cv2.erode(mask, None, iterations=2)
