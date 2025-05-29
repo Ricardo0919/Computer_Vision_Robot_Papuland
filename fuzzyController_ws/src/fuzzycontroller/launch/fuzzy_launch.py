@@ -11,8 +11,15 @@
 
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from ament_index_python.packages import get_package_share_directory
+import os
 
 def generate_launch_description():
+
+    # Obtener la ruta del archivo YAML de trayectoria
+    pkg_dir = get_package_share_directory('fuzzycontroller')
+    config_path = os.path.join(pkg_dir, 'config', 'params.yaml')
+
 
     # Nodo controlador en base a seguidor de línea y detección de colores de semáforo
     Controller = Node(
@@ -21,9 +28,7 @@ def generate_launch_description():
         executable='ControllerFuzzy', 
         emulate_tty=True,
         output='screen',
-        parameters=[
-            {'v_max': 0.18} # Límite de máxima velocidad del robot
-        ]
+        parameters=[config_path]
     )
 
     # Nodo que detecta la línea a seguir
