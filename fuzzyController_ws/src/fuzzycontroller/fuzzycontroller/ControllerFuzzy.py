@@ -180,11 +180,11 @@ class ControllerFuzzy(Node):
         msg.linear.x = v
         msg.angular.z = w
         self.pub_cmd.publish(msg)
-        #self.get_logger().info(f'Err {self.error:+6.1f}  dErr {self.d_error:+7.1f}  'f'v {v:0.3f}  ω {w:0.3f}')
+        self.get_logger().info(f'Err {self.error:+6.1f}  dErr {self.d_error:+7.1f}  'f'v {v:0.3f}  ω {w:0.3f}')
 
     # ----- Apagado limpio -----
     def shutdown(self, *_):
-        self.pub_cmd.publish(Twist())
+        self.pub_cmd.publish(self.publish_twist(0.0, 0.0))
         rclpy.shutdown()
         sys.exit(0)
 
