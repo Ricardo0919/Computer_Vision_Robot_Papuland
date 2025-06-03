@@ -47,10 +47,11 @@ setup(
     entry_points={
         'console_scripts': [
             'ControllerPD = puzzlebot_finalchallenge.ControllerPD:main',
-            'ControllerFuzzy = puzzlebot_finalchallenge.ControllerFuzzy:main',
             'LineFollower = puzzlebot_finalchallenge.LineFollower:main',
+            'ZebraDetection = puzzlebot_finalchallenge.ZebraDetection:main',
             'TrafficLightDetector = puzzlebot_finalchallenge.TrafficLightDetector:main',
             'TrafficLightImageTaker = puzzlebot_finalchallenge.TrafficLightImageTaker:main',
+            'TrafficSignalImageTaker = puzzlebot_finalchallenge.TrafficSignalImageTaker:main',
             'color_filter = puzzlebot_finalchallenge.color_filter:main',
         ],
     },

@@ -24,11 +24,11 @@ def main():
     # Inicio del proceso de entrenamiento
     model.train(
         data='data.yaml',                # Ruta al archivo con info del dataset
-        epochs=50,                      # Número total de épocas (iteraciones completas)
+        epochs=50,                       # Número total de epochs (iteraciones completas)
         imgsz=160,                       # Tamaño de las imágenes de entrada (160x160)
         batch=32,                        # Tamaño del lote (cuántas imágenes procesa por paso)
         device=0,                        # Selección de GPU (0 = primera GPU)
-        name='traffic_light_base_model' # Nombre de la carpeta de resultados
+        name='traffic_light_base_model'  # Nombre de la carpeta de resultados
     )
 
 # Punto de entrada del script

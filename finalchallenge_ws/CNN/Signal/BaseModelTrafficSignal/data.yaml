@@ -1,0 +1,13 @@
+train: dataset/train/images
+val: dataset/valid/images
+test: dataset/test/images
+
+nc: 6
+names: ['give_way', 'stop', 'straight', 'turn_left', 'turn_right', 'worker_ahead']
+
+roboflow:
+  workspace: papuland-traffic-signal-hxr6x
+  project: traffic-signal-tocqv
+  version: 5
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/papuland-traffic-signal-hxr6x/traffic-signal-tocqv/dataset/5

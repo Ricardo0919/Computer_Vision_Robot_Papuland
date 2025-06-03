@@ -23,6 +23,22 @@ def generate_launch_description():
         output='screen',
     )
 
+    # Nodo que detecta colores de semáforo
+    ZebraDetection = Node(
+        name="ZebraDetection",
+        package='puzzlebot_finalchallenge',
+        executable='ZebraDetection',
+        emulate_tty=True,
+        output='screen',
+        parameters=[
+            {'mode': 'real'},     # Modo de operación: 'sim' o 'real'
+            {'roi_top': 50},      # Margen superior del área de interés
+            {'roi_bottom': 100},  # Margen inferior del área de interés
+            {'roi_left': 20},     # Margen izquierdo del área de interés
+            {'roi_right': 20}     # Margen derecho del área de interés
+        ]
+    )
+
     # Nodo que lanza la interfaz gráfica de rqt_image_view para visualizar la imagen de colores detectados
     rqt_image_view_color = Node(
         name="rqt_image_view",
@@ -30,10 +46,11 @@ def generate_launch_description():
         executable='rqt_image_view',
         emulate_tty=True,
         output='screen',
-        arguments=['/processed_img'] # Tópico de imagen procesada
+        #arguments=['/processed_img']  # Tópico de imagen procesada traffic light
+        arguments=['/zebra_image']     # Tópico de imagen procesada zebra
     )
 
     # Descripción de lanzamiento (solo con nodos activos por defecto)
-    l_d = LaunchDescription([TrafficLightDetector, rqt_image_view_color])
+    l_d = LaunchDescription([ZebraDetection, rqt_image_view_color])
 
     return l_d

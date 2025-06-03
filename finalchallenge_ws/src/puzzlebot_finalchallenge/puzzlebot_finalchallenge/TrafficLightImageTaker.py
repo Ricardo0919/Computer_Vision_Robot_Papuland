@@ -29,7 +29,7 @@ class ImageSaver(Node):
         super().__init__('image_saver')
         self.subscription = self.create_subscription(
             Image,
-            '/video_source/raw',  # Cambia esto si estás usando otro tópico
+            '/video_source/raw',
             self.listener_callback,
             10)
         self.bridge = CvBridge()

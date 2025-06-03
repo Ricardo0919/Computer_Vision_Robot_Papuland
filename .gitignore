@@ -32,6 +32,7 @@ cmake-build-*/
 puzzlebot_description/
 puzzlebot_gazebo/
 
+# Carpetas de datasets de semaforos
 CNN/TrafficLight/dataset/
 **/CNN/TrafficLight/dataset/
 
@@ -40,3 +41,13 @@ CNN/TrafficLight/TrafficLightPytorch/dataset/
 
 CNN/TrafficLight/BaseModelTrafficLight/dataset/
 **/CNN/TrafficLight/BaseModelTrafficLight/dataset/
+
+# Carpetas de datasets de señales de tráfico
+CNN/Signal/dataset/
+**/CNN/Signal/dataset/
+
+CNN/Signal/TrafficSignalPytorch/dataset/
+**/CNN/Signal/TrafficSignalPytorch/dataset/
+
+CNN/Signal/BaseModelTrafficSignal/dataset/
+**/CNN/Signal/BaseModelTrafficSignal/dataset/

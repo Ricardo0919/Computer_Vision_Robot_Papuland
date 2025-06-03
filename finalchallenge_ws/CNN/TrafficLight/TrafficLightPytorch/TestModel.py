@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# Proyecto: Puzzlebot Final Challenge - Prueba en tiempo real del modelo YOLOv8 reentrenado
+# Proyecto: Puzzlebot Final Challenge - Prueba en tiempo real del modelo reentrenado
 # Materia: Implementación de Robótica Inteligente
 # Fecha: 12 de junio de 2025
 # Alumnos:
@@ -54,7 +54,7 @@ while True:
         annotated_frame = results[0].plot()
 
         # Mostrar el frame con anotaciones en la ventana pre-creada
-        cv2.imshow("YOLOv8 - Reentrenado", annotated_frame)
+        cv2.imshow("Detección de semaforos", annotated_frame)
 
     except Exception as e:
         print(f"⚠️ Error durante la inferencia o visualización: {e}")
