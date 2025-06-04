@@ -48,6 +48,3 @@ CNN/Signal/dataset/
 
 CNN/Signal/TrafficSignalPytorch/dataset/
 **/CNN/Signal/TrafficSignalPytorch/dataset/
-
-CNN/Signal/BaseModelTrafficSignal/dataset/
-**/CNN/Signal/BaseModelTrafficSignal/dataset/

@@ -1,6 +1,6 @@
 task: detect
 mode: train
-model: models/best.pt
+model: yolov8s.pt
 data: data.yaml
 epochs: 60
 time: null
@@ -85,13 +85,13 @@ nbs: 64
 hsv_h: 0.015
 hsv_s: 0.7
 hsv_v: 0.4
-degrees: 10
+degrees: 0.0
 translate: 0.1
 scale: 0.5
 shear: 0.0
-perspective: 0.001
+perspective: 0.0
 flipud: 0.0
-fliplr: 0.5
+fliplr: 0.0
 bgr: 0.0
 mosaic: 1.0
 mixup: 0.0
@@ -100,6 +100,6 @@ copy_paste: 0.0
 copy_paste_mode: flip
 auto_augment: randaugment
 erasing: 0.4
-cfg: null
+cfg: cfg/default.yaml
 tracker: botsort.yaml
 save_dir: runs/detect/traffic_signal_finetuned_aug

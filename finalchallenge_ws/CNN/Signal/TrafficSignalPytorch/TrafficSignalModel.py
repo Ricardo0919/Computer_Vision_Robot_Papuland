@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# Proyecto: Puzzlebot Final Challenge - Reentrenamiento del modelo para detección 
+# Proyecto: Puzzlebot Final Challenge - Entrenamiento del modelo para detección 
 #                                       de señales de tráfico
 # Materia: Implementación de Robótica Inteligente
 # Fecha: 12 de junio de 2025
@@ -19,12 +19,11 @@ def main():
     print("CUDA disponible:", torch.cuda.is_available())
 
     # Carga del modelo YOLOv8 preentrenado ("s" = small)
-    # Este modelo servirá como base y se ajustará al dataset específico de semáforos
-    model = YOLO('models/best.pt')
-    #model = YOLO('yolov8s.pt')
+    model = YOLO('yolov8s.pt')
     
     # Inicio del proceso de entrenamiento
     model.train(
+        cfg='cfg/default.yaml',              # Configuración de entrenamiento
         data='data.yaml',                    # Configuración del dataset
         epochs=60,                           # Número de épocas
         imgsz=160,                           # Tamaño de las imágenes
@@ -32,12 +31,9 @@ def main():
         device=0,                            # GPU
         name='traffic_signal_finetuned_aug', # Nombre de la corrida
         augment=True,                        # Activar data augmentation
-        degrees=10,                          # Rotación aleatoria ±10°
-        scale=0.5,                           # Escalado aleatorio (0.5 a 1.5)
-        perspective=0.001,                   # Distorsión de perspectiva leve
         hsv_h=0.015,                         # Variación de tono
         hsv_s=0.7,                           # Variación de saturación
-        hsv_v=0.4                            # Variación de brillo
+        hsv_v=0.4,                           # Variación de brillo
     )
 
 # Punto de entrada del script
