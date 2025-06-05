@@ -38,16 +38,18 @@ class Controller(Node):
         self.prev_time = self.get_clock().now()
         self.valid_error = False
 
-        self.traffic_light_state = "none"
-        self.current_speed = 0.0     # empieza parado
-        self.ready_to_go = False     # Nueva bandera: solo se activa al recibir "green"
-        self.zebra_detected = False  # Variable para detectar cebra
+        self.traffic_light_state = "none"   # Variable para guardar señal detectada
+        self.current_speed = 0.0            # empieza parado
+        self.ready_to_go = False            # Nueva bandera: solo se activa al recibir "green"
+        self.zebra_detected = False         # Variable para detectar cebra
+        self.signal_detected = "none"       # Variable para guardar señal detectada
 
 
 
         # Suscripciones / publicación
         self.create_subscription(Float32, '/line_follower_data', self.cb_error, 10)
         self.create_subscription(String,  '/color_detector',     self.cb_color, 10)
+        self.create_subscription(String,  '/signal_detector',    self.cb_signal, 10)
         self.create_subscription(Bool,  '/zebra_detected',     self.cb_zebra, 10)
         self.pub_cmd = self.create_publisher(Twist, '/cmd_vel', 10)
 
@@ -68,6 +70,9 @@ class Controller(Node):
         self.zebra_detected = msg.data
         self.get_logger().info(f'Cebra detectada: {self.zebra_detected}')
 
+    def cb_signal(self, msg: String):
+        self.signal_detected = msg.data
+        self.get_logger().info(f'Señal detectada: {self.signal_detected}')
 
     def cb_color(self, msg: String):
         if msg.data in ("red", "yellow", "green"):

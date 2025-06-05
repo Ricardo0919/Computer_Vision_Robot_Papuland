@@ -87,7 +87,7 @@ class ZebraDetector(Node):
                     valid_contours.append(cnt)
 
         square_count = len(valid_contours)
-        zebra_detected = square_count >= 2
+        zebra_detected = square_count >= 3
         self.pub_zebra.publish(Bool(data=zebra_detected))
         #self.get_logger().info(f'Cebra detectada: {zebra_detected} (cuadros: {square_count})')
 

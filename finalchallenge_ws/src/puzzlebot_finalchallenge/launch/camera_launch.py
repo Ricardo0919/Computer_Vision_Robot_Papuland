@@ -72,6 +72,6 @@ def generate_launch_description():
     )
 
     # Descripción de lanzamiento (solo con nodos activos por defecto)
-    l_d = LaunchDescription([TrafficSignalDetector, rqt_image_view_signal])
+    l_d = LaunchDescription([TrafficLightDetector, rqt_image_view_signal])
 
     return l_d

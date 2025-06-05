@@ -96,6 +96,6 @@ def generate_launch_description():
     )
 
     # Descripción de lanzamiento (solo con nodos activos por defecto)
-    l_d = LaunchDescription([LineFollower, Controller, ZebraDetection, TrafficLightDetector, TrafficSignalDetector, rqt_image_view_line, rqt_image_view_color])
+    l_d = LaunchDescription([LineFollower, Controller, ZebraDetection, TrafficSignalDetector, rqt_image_view_line, rqt_image_view_color])
 
     return l_d

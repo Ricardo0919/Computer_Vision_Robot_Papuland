@@ -7,7 +7,7 @@ from rclpy.node import Node
 from rclpy import qos
 from std_msgs.msg import Float32
 from nav_msgs.msg import Odometry
-from std_srvs.srv import Empty     # 🆕 servicio vacío
+from std_srvs.srv import Empty  
 
 class OdometryNode(Node):
     def __init__(self):
@@ -22,7 +22,7 @@ class OdometryNode(Node):
         self._r = 0.0505
 
         # --- factores de corrección (param ROS) ---
-        self.declare_parameter('angular_correction_factor', 0.92)
+        self.declare_parameter('angular_correction_factor', 0.91)
         self.declare_parameter('linear_correction_factor', 0.90)
         self.cf_ang = self.get_parameter('angular_correction_factor').value
         self.cf_lin = self.get_parameter('linear_correction_factor').value
