@@ -13,7 +13,7 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
-from std_msgs.msg     import Float32, String
+from std_msgs.msg     import Float32, String, Bool
 import numpy as np
 import signal  
 import sys 
@@ -26,7 +26,7 @@ class Controller(Node):
         # ─────── Parámetros ROS (puedes sobreescribir en YAML) ───────
         self.declare_parameter('kp_base', 0.0035)
         self.declare_parameter('kd',      0.0015)
-        self.declare_parameter('v_max',   0.18)    # m/s en recta
+        self.declare_parameter('v_max',   0.15)    # m/s en recta
         self.declare_parameter('v_min',   0.04)   # m/s en curva cerrada
         self.declare_parameter('ramp_step', 0.01) # m/s por tick (20 Hz)
         self.declare_parameter('alpha',     0.45) # filtro derror
@@ -39,13 +39,16 @@ class Controller(Node):
         self.valid_error = False
 
         self.traffic_light_state = "none"
-        self.current_speed = 0.0   # empieza parado
-        self.ready_to_go = False  # Nueva bandera: solo se activa al recibir "green"
+        self.current_speed = 0.0     # empieza parado
+        self.ready_to_go = False     # Nueva bandera: solo se activa al recibir "green"
+        self.zebra_detected = False  # Variable para detectar cebra
+
 
 
         # Suscripciones / publicación
         self.create_subscription(Float32, '/line_follower_data', self.cb_error, 10)
         self.create_subscription(String,  '/color_detector',     self.cb_color, 10)
+        self.create_subscription(Bool,  '/zebra_detected',     self.cb_zebra, 10)
         self.pub_cmd = self.create_publisher(Twist, '/cmd_vel', 10)
 
         # Handle shutdown gracefully 
@@ -61,14 +64,19 @@ class Controller(Node):
         if self.valid_error:
             self.error = msg.data
 
+    def cb_zebra(self, msg: Bool):
+        self.zebra_detected = msg.data
+        self.get_logger().info(f'Cebra detectada: {self.zebra_detected}')
+
+
     def cb_color(self, msg: String):
         if msg.data in ("red", "yellow", "green"):
             self.traffic_light_state = msg.data
             # Activar solo una vez cuando llega el verde por primera vez
             if msg.data == "green" and not self.ready_to_go:
                 self.ready_to_go = True
-                self.get_logger().info("🟢 ¡Semáforo verde recibido! Robot listo para avanzar.")
-        self.get_logger().info(f'🎨 Semáforo: {self.traffic_light_state}')
+                self.get_logger().info("Semáforo verde recibido, Robot listo para avanzar.")
+        self.get_logger().info(f'Semáforo: {self.traffic_light_state}')
 
 
     # ---------- Bucle de control ----------
@@ -91,6 +99,11 @@ class Controller(Node):
         
         # Si el semáforo es rojo, detener el robot
         if self.traffic_light_state == "red":
+            self.publish_twist(0.0, 0.0)
+            return
+
+        # Si hay cebra detectada, detener el robot
+        if self.zebra_detected:
             self.publish_twist(0.0, 0.0)
             return
 

@@ -25,6 +25,7 @@ setup(
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*launch.[pxy][yma]*'))),
         (os.path.join('share', package_name, 'models'), glob(os.path.join(package_name, 'models', '*.pt'))),
+        (os.path.join('share', package_name, 'config'), glob(os.path.join('config', '*.[yma]*'))),
     ],
     install_requires=[
         'setuptools',
@@ -34,6 +35,7 @@ setup(
         'ultralytics',
         'opencv-python',
         'transforms3d',
+        'tf-transformations',
         'cv_bridge',
         'scikit-fuzzy'
     ],
@@ -48,11 +50,13 @@ setup(
         'console_scripts': [
             'ControllerPD = puzzlebot_finalchallenge.ControllerPD:main',
             'LineFollower = puzzlebot_finalchallenge.LineFollower:main',
+            'OdometryNode = puzzlebot_finalchallenge.OdometryNode:main',
+            'PathFollower = puzzlebot_finalchallenge.PathFollower:main',
             'ZebraDetection = puzzlebot_finalchallenge.ZebraDetection:main',
             'TrafficLightDetector = puzzlebot_finalchallenge.TrafficLightDetector:main',
+            'TrafficSignalDetector = puzzlebot_finalchallenge.TrafficSignalDetector:main',
             'TrafficLightImageTaker = puzzlebot_finalchallenge.TrafficLightImageTaker:main',
             'TrafficSignalImageTaker = puzzlebot_finalchallenge.TrafficSignalImageTaker:main',
-            'color_filter = puzzlebot_finalchallenge.color_filter:main',
         ],
     },
 )

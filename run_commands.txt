@@ -4,3 +4,5 @@ ros2 launch puzzlebot_ros micro_ros_agent.launch.py
 
 ros2 topic pub /color_detector std_msgs/String "data: 'green'"
 
+ros2 topic pub /go_direction std_msgs/String "data: 'turn_left'"
+

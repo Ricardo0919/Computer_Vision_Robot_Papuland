@@ -26,8 +26,8 @@ class ZebraDetector(Node):
 
         # Parámetros configurables
         self.declare_parameter('mode', 'real')
-        self.declare_parameter('roi_top', 50)
-        self.declare_parameter('roi_bottom', 100)
+        self.declare_parameter('roi_top', 45)
+        self.declare_parameter('roi_bottom', 110)
         self.declare_parameter('roi_left', 20)
         self.declare_parameter('roi_right', 20)
 
@@ -81,15 +81,15 @@ class ZebraDetector(Node):
         valid_contours = []
         for cnt in contours:
             area = cv2.contourArea(cnt)
-            if 200 < area < 700:
+            if 170 < area < 700:
                 approx = cv2.approxPolyDP(cnt, 0.04 * cv2.arcLength(cnt, True), True)
                 if len(approx) >= 4:
                     valid_contours.append(cnt)
 
         square_count = len(valid_contours)
-        zebra_detected = square_count >= 3
+        zebra_detected = square_count >= 2
         self.pub_zebra.publish(Bool(data=zebra_detected))
-        self.get_logger().info(f'Cebra detectada: {zebra_detected} (cuadros: {square_count})')
+        #self.get_logger().info(f'Cebra detectada: {zebra_detected} (cuadros: {square_count})')
 
         # Solo dibujar contornos si sí es cebra
         if zebra_detected:

@@ -22,7 +22,7 @@ def generate_launch_description():
         emulate_tty=True,
         output='screen',
         parameters=[
-            {'v_max': 0.18} # Límite de máxima velocidad del robot
+            {'v_max': 0.15} # Límite de máxima velocidad del robot
         ]
     )
 
@@ -36,8 +36,24 @@ def generate_launch_description():
         parameters=[
             {'mode': 'real'},  # Modo de operación: 'sim' o 'real'
             {'roi_ratio': 15},  # Proporción del área de interés respecto a la imagen
-            {'roi_left': 20},   # Margen izquierdo del área de interés
-            {'roi_right': 20}   # Margen derecho del área de interés
+            {'roi_left': 0},   # Margen izquierdo del área de interés
+            {'roi_right': 0}   # Margen derecho del área de interés
+        ]
+    )
+
+    # Nodo que detecta si hay un cruce
+    ZebraDetection = Node(
+        name="ZebraDetection",
+        package='puzzlebot_finalchallenge',
+        executable='ZebraDetection',
+        emulate_tty=True,
+        output='screen',
+        parameters=[
+            {'mode': 'real'},     # Modo de operación: 'sim' o 'real'
+            {'roi_top': 45},      # Margen superior del área de interés
+            {'roi_bottom': 110},   # Margen inferior del área de interés
+            {'roi_left': 0},     # Margen izquierdo del área de interés
+            {'roi_right': 0}     # Margen derecho del área de interés
         ]
     )
 
@@ -46,6 +62,15 @@ def generate_launch_description():
         name="TrafficLightDetector",
         package='puzzlebot_finalchallenge',
         executable='TrafficLightDetector',
+        emulate_tty=True,
+        output='screen',
+    )
+
+    # Nodo que detecta las señales de tráfico
+    TrafficSignalDetector = Node(
+        name="TrafficSignalDetector",
+        package='puzzlebot_finalchallenge',
+        executable='TrafficSignalDetector',
         emulate_tty=True,
         output='screen',
     )
@@ -71,6 +96,6 @@ def generate_launch_description():
     )
 
     # Descripción de lanzamiento (solo con nodos activos por defecto)
-    l_d = LaunchDescription([LineFollower, Controller, TrafficLightDetector, rqt_image_view_line, rqt_image_view_color])
+    l_d = LaunchDescription([LineFollower, Controller, ZebraDetection, TrafficLightDetector, TrafficSignalDetector, rqt_image_view_line, rqt_image_view_color])
 
     return l_d

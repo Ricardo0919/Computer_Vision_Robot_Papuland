@@ -18,7 +18,7 @@ import cv2
 import os
 
 # Cambia esto por tu clase actual ('stop', 'left', 'right', 'straight', 'worker', 'give_way', 'null')
-CURRENT_CLASS = 'right_extra'
+CURRENT_CLASS = 'straight_extra'
 
 # Carpeta destino
 SAVE_PATH = f'/home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/finalchallenge_ws/CNN/Signal/dataset/{CURRENT_CLASS}'

@@ -39,7 +39,7 @@ class YOLOv8TrafficLightDetector(Node):
         self.create_timer(0.1, self.timer_callback)
 
         # Cargar modelo YOLOv8
-        model_path = Path(get_package_share_directory('puzzlebot_finalchallenge')) / 'models' / 'best.pt'
+        model_path = Path(get_package_share_directory('puzzlebot_finalchallenge')) / 'models' / 'TrafficLights.pt'
         self.model = YOLO(str(model_path))
         self.names = self.model.names
         self.prev_detected = 'none'
@@ -63,7 +63,7 @@ class YOLOv8TrafficLightDetector(Node):
         img = cv2.resize(self.cv_img.copy(), (160, 120))
 
         try:
-            results = self.model(img, imgsz=160, conf=0.5)
+            results = self.model(img, imgsz=160, conf=0.65)
             annotated_img = img.copy()
             detected = None
 
