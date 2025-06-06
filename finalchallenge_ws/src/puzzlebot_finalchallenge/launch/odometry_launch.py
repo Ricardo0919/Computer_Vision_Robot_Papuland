@@ -20,7 +20,7 @@ def generate_launch_description():
     pkg_dir = get_package_share_directory('puzzlebot_finalchallenge')
     config_path = os.path.join(pkg_dir, 'config', 'paths.yaml')
 
-    # Nodo que detecta colores de semáforo
+    # Nodo que sigue una trayectoria predefinida
     PathFollower = Node(
         name="PathFollower",
         package='puzzlebot_finalchallenge',
@@ -32,7 +32,7 @@ def generate_launch_description():
         ]
     )
 
-    # Nodo que detecta colores de semáforo
+    # Nodo de odometría
     OdometryNode = Node(
         name="OdometryNode",
         package='puzzlebot_finalchallenge',

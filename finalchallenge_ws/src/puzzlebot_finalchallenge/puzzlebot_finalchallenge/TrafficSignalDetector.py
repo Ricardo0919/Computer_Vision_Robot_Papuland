@@ -77,7 +77,7 @@ class YOLOv8TrafficSignalDetector(Node):
 
                 # Dibujar caja y etiqueta
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
-                cv2.rectangle(annotated_img, (x1, y1), (x2, y2), (255, 255, 0), 2)
+                cv2.rectangle(annotated_img, (x1, y1), (x2, y2), (255, 255, 0), 1)
                 text = f"{label} {conf:.2f}"
                 cv2.putText(annotated_img, text, (x1, y1 - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 1)
 
@@ -85,7 +85,6 @@ class YOLOv8TrafficSignalDetector(Node):
             if detected and detected != self.prev_detected:
                 self.prev_detected = detected
                 self.signal_pub.publish(String(data=detected))
-                #self.get_logger().info(f'Señal detectada: {detected}')
 
             # Publicar imagen anotada
             self.image_pub.publish(self.bridge.cv2_to_imgmsg(annotated_img, encoding='bgr8'))

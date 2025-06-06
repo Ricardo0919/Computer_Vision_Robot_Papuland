@@ -28,8 +28,8 @@ class ZebraDetector(Node):
         self.declare_parameter('mode', 'real')
         self.declare_parameter('roi_top', 45)
         self.declare_parameter('roi_bottom', 110)
-        self.declare_parameter('roi_left', 20)
-        self.declare_parameter('roi_right', 20)
+        self.declare_parameter('roi_left', 0)
+        self.declare_parameter('roi_right', 0)
 
         mode = self.get_parameter('mode').get_parameter_value().string_value
         topic_name = 'video_source/raw' if mode == 'real' else 'camera'

@@ -11,8 +11,14 @@
 
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from ament_index_python.packages import get_package_share_directory
+import os
 
 def generate_launch_description():
+
+    # Obtener la ruta del archivo YAML de trayectoria
+    pkg_dir = get_package_share_directory('puzzlebot_finalchallenge')
+    config_path = os.path.join(pkg_dir, 'config', 'paths.yaml')
 
     # Nodo controlador en base a seguidor de línea y detección de colores de semáforo
     Controller = Node(
@@ -75,6 +81,27 @@ def generate_launch_description():
         output='screen',
     )
 
+    # Nodo que sigue una trayectoria predefinida
+    PathFollower = Node(
+        name="PathFollower",
+        package='puzzlebot_finalchallenge',
+        executable='PathFollower',
+        emulate_tty=True,
+        output='screen',
+        parameters=[
+            {'path_file': config_path}  # Ruta del archivo con los waypoints
+        ]
+    )
+
+    # Nodo de odometría
+    OdometryNode = Node(
+        name="OdometryNode",
+        package='puzzlebot_finalchallenge',
+        executable='OdometryNode',
+        emulate_tty=True,
+        output='screen',
+    )
+
     # Nodo que lanza la interfaz gráfica de rqt_image_view para visualizar la imagen de lineas detectadas
     rqt_image_view_line = Node(
         name="rqt_image_view",
@@ -96,6 +123,6 @@ def generate_launch_description():
     )
 
     # Descripción de lanzamiento (solo con nodos activos por defecto)
-    l_d = LaunchDescription([LineFollower, Controller, ZebraDetection, TrafficSignalDetector, rqt_image_view_line, rqt_image_view_color])
+    l_d = LaunchDescription([LineFollower, Controller, ZebraDetection, TrafficSignalDetector, OdometryNode, PathFollower, rqt_image_view_line, rqt_image_view_color])
 
     return l_d

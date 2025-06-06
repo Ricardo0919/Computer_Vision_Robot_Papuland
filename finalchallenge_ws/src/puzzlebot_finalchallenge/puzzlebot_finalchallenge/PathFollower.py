@@ -31,6 +31,7 @@ class PathFollower(Node):
         self.create_subscription(Odometry,'/odom',self.odom_cb,qos_profile_sensor_data)
         self.create_subscription(String,'/go_direction',self.dir_cb,10)
         self.cmd_pub = self.create_publisher(Twist,'/cmd_vel',10)
+        self.done_pub = self.create_publisher(String, '/path_done', 10)
 
         # --- cliente de reset odom ---
         self.reset_cli = self.create_client(Empty,'reset_odometry')
@@ -91,7 +92,7 @@ class PathFollower(Node):
         if abs(err) < np.deg2rad(15):
             lin_er=dist
             d_lin=(lin_er-self.prev_lin)/dt if dt else 0; self.prev_lin=lin_er
-            v=np.clip(self.kp_lin*lin_er + self.kd_lin*d_lin,-0.3,0.3)
+            v=np.clip(self.kp_lin*lin_er + self.kd_lin*d_lin,-0.15,0.15)
         else:
             v=0.0
 
@@ -103,7 +104,10 @@ class PathFollower(Node):
             if self.idx >= len(self.active_path):
                 self.done=True
                 self.cmd_pub.publish(Twist())
-                self.get_logger().info("🎯 Ruta completada.")
+                #Termino de la ruta, publicar mensaje
+                msg = String()
+                msg.data = "done"
+                self.done_pub.publish(msg)
 
     # ---------- utilidades ----------
     def norm_ang(self,a): return np.arctan2(np.sin(a),np.cos(a))

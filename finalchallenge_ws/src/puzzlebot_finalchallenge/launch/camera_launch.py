@@ -55,9 +55,7 @@ def generate_launch_description():
         executable='rqt_image_view',
         emulate_tty=True,
         output='screen',
-        arguments=['/processed_signal_img']  # Tópico de imagen procesada traffic signal
-        #arguments=['/processed_img']        # Tópico de imagen procesada traffic light
-        #arguments=['/zebra_image']          # Tópico de imagen procesada zebra
+        arguments=['/processed_img']        # Tópico de imagen procesada traffic light
     )
 
     rqt_image_view_signal = Node(
@@ -66,9 +64,16 @@ def generate_launch_description():
         executable='rqt_image_view',
         emulate_tty=True,
         output='screen',
-        #arguments=['/processed_signal_img']  # Tópico de imagen procesada traffic signal
-        arguments=['/processed_img']        # Tópico de imagen procesada traffic light
-        #arguments=['/zebra_image']          # Tópico de imagen procesada zebra
+        arguments=['/processed_signal_img']  # Tópico de imagen procesada traffic signal
+    )
+
+    rqt_image_view_zebra = Node(
+        name="rqt_image_view",
+        package='rqt_image_view',
+        executable='rqt_image_view',
+        emulate_tty=True,
+        output='screen',
+        arguments=['/zebra_image']          # Tópico de imagen procesada zebra
     )
 
     # Descripción de lanzamiento (solo con nodos activos por defecto)
