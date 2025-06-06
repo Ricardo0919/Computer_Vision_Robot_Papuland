@@ -42,8 +42,11 @@ class Controller(Node):
         self.signal_detected = "none"
         self.path_following = False
 
-        # NEW 🔥: slow-mode timer (None = no slow)
+        # slow-mode timer (None = no slow)
         self.slow_end_time = None
+
+        self.stop_end_time = None
+
 
         # Subs / pubs
         self.create_subscription(Float32, '/line_follower_data', self.cb_error,   10)
@@ -85,10 +88,13 @@ class Controller(Node):
         now = self.get_clock().now()
         if msg.data == "worker_ahead":
             self.slow_end_time = now + rclpy.duration.Duration(seconds=10)
-            self.get_logger().info("🚧 worker_ahead → slow-mode 10 s")
+            self.get_logger().info("worker_ahead -> slow-mode 10 s")
         elif msg.data == "give_way":
             self.slow_end_time = now + rclpy.duration.Duration(seconds=5)
-            self.get_logger().info("⚠️ give_way → slow-mode 5 s")
+            self.get_logger().info("give_way -> slow-mode 5 s")
+        elif msg.data == "stop":
+            self.stop_end_time = now + rclpy.duration.Duration(seconds=10)
+            self.get_logger().info("STOP -> detención 10 s")
 
     def cb_color(self, msg: String):
         if msg.data in ("red", "yellow", "green"):
@@ -106,12 +112,18 @@ class Controller(Node):
         if dt <= 0: return
         if self.path_following: return
 
-        # --- Bloqueos hard ---
-        if (not self.valid_error or not self.ready_to_go or
-            self.traffic_light_state == "red" or
-            self.signal_detected == "stop"):
+        # --- Stop del robot ---
+        if (not self.valid_error or not self.ready_to_go or self.traffic_light_state == "red"):
             self.publish_twist(0.0, 0.0)
             return
+        
+        # --- STOP total por señal ---
+        if self.stop_end_time:
+            if now < self.stop_end_time:
+                self.publish_twist(0.0, 0.0)
+                return
+            else:
+                self.stop_end_time = None  # se acabó el stop
 
         # --- Path-switch en cebra ---
         if (self.zebra_detected and
@@ -157,7 +169,7 @@ class Controller(Node):
         if self.slow_end_time and now < self.slow_end_time:
             v_target = v_min  # full crawl
         elif self.slow_end_time and now >= self.slow_end_time:
-            self.slow_end_time = None  # se acabó el castigo
+            self.slow_end_time = None  # se acabó el tiempo de slow-mode
 
         # ---------- Rampa suave ----------
         step = self.get_parameter('ramp_step').value

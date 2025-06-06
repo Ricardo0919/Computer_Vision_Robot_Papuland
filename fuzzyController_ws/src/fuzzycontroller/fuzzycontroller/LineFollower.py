@@ -31,8 +31,8 @@ class LineFollower(Node):
         # ----- Parámetros configurables desde launch o YAML -----
         self.declare_parameter('mode', 'real')           # Modo: 'real' o 'simulado'
         self.declare_parameter('roi_ratio', 15)          # Altura del ROI desde abajo
-        self.declare_parameter('roi_left', 20)           # Margen izquierdo del ROI
-        self.declare_parameter('roi_right', 20)          # Margen derecho del ROI
+        self.declare_parameter('roi_left', 0)           # Margen izquierdo del ROI
+        self.declare_parameter('roi_right', 0)          # Margen derecho del ROI
 
         mode = self.get_parameter('mode').get_parameter_value().string_value
         topic_name = 'video_source/raw' if mode == 'real' else 'camera' # Tópico de la cámara

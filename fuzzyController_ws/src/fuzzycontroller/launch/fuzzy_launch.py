@@ -41,8 +41,8 @@ def generate_launch_description():
         parameters=[
             {'mode': 'real'},  # Modo de operación: 'sim' o 'real'
             {'roi_ratio': 15},  # Proporción del área de interés respecto a la imagen
-            {'roi_left': 15},   # Margen izquierdo del área de interés
-            {'roi_right': 15}   # Margen derecho del área de interés
+            {'roi_left': 0},   # Margen izquierdo del área de interés
+            {'roi_right': 0}   # Margen derecho del área de interés
         ]
     )
 
