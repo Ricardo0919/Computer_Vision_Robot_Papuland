@@ -38,7 +38,7 @@ class LineFollower(Node):
 
         # Publicadores
         self.pub_error = self.create_publisher(Float32, '/line_follower_data', 10)
-        self.pub_img = self.create_publisher(Image, '/processed_line_image', 10)
+        self.pub_img = self.create_publisher(Image, '/line_follower', 10)
 
         # Timer para procesamiento
         self.timer = self.create_timer(0.1, self.timer_callback)

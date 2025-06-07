@@ -78,7 +78,7 @@ def generate_launch_description():
         executable='rqt_image_view',
         emulate_tty=True,
         output='screen',
-        arguments=['/processed_line_image'] # Tópico de imagen procesada
+        arguments=['/line_follower'] # Tópico de imagen procesada
     )
 
     # Nodo que lanza la interfaz gráfica de rqt_image_view para visualizar la imagen de colores detectados
@@ -88,7 +88,7 @@ def generate_launch_description():
         executable='rqt_image_view',
         emulate_tty=True,
         output='screen',
-        arguments=['/processed_img'] # Tópico de imagen procesada
+        arguments=['/traffic_light'] # Tópico de imagen procesada
     )
 
     # Descripción de lanzamiento (solo con nodos activos por defecto)

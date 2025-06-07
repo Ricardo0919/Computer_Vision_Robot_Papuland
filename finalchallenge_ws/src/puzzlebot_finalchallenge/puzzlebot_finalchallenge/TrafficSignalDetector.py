@@ -33,7 +33,7 @@ class YOLOv8TrafficSignalDetector(Node):
 
         # Publicadores
         self.signal_pub = self.create_publisher(String, 'signal_detector', 10)
-        self.image_pub = self.create_publisher(Image, 'processed_signal_img', 10)
+        self.image_pub = self.create_publisher(Image, 'traffic_signal', 10)
 
         # Temporizador
         self.create_timer(0.1, self.timer_callback)
