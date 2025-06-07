@@ -129,7 +129,7 @@ class Controller(Node):
         if (self.zebra_detected and
             self.signal_detected in ("straight", "turn_left", "turn_right") and
             not self.path_following and
-            self.traffic_light_state != "red"):
+            self.traffic_light_state == "green"):
             self.path_following = True
             self.current_speed = 0.0
             self.get_clock().sleep_for(rclpy.duration.Duration(seconds=0.5))

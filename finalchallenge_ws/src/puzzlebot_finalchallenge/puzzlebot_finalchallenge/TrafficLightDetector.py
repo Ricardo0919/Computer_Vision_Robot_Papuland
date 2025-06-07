@@ -44,6 +44,11 @@ class YOLOv8TrafficLightDetector(Node):
         self.names = self.model.names
         self.prev_detected = 'none'
 
+        # Debounce temporal (mínimo 3 frames consistentes)
+        self.detection_counter = 0
+        self.min_stable_frames = 3
+        self.current_candidate = 'none'
+
         # Publicar estado inicial
         self.color_pub.publish(String(data='none'))
         self.get_logger().info('🚦 Nodo YOLOv8 iniciado y modelo cargado correctamente.')
@@ -63,7 +68,7 @@ class YOLOv8TrafficLightDetector(Node):
         img = cv2.resize(self.cv_img.copy(), (160, 120))
 
         try:
-            results = self.model(img, imgsz=160, conf=0.65)
+            results = self.model(img, imgsz=160, conf=0.5)
             annotated_img = img.copy()
             detected = None
 
@@ -85,15 +90,26 @@ class YOLOv8TrafficLightDetector(Node):
 
                 # Dibujar caja y etiqueta
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
-                cv2.rectangle(annotated_img, (x1, y1), (x2, y2), box_color, 2)
+                cv2.rectangle(annotated_img, (x1, y1), (x2, y2), box_color, 1)
                 text = f"{label} {conf:.2f}"
                 cv2.putText(annotated_img, text, (x1, y1 - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.5, box_color, 1)
 
-            # Publicar el color solo si cambia
-            if detected and detected != self.prev_detected:
-                self.prev_detected = detected
-                self.color_pub.publish(String(data=detected))
-                #self.get_logger().info(f'Color detectado: {detected}')
+            # Lógica de debounce: publicar solo si se mantiene el color 3 frames
+            if detected:
+                if detected == self.current_candidate:
+                    self.detection_counter += 1
+                else:
+                    self.current_candidate = detected
+                    self.detection_counter = 1
+
+                if self.detection_counter >= self.min_stable_frames and detected != self.prev_detected:
+                    self.prev_detected = detected
+                    self.color_pub.publish(String(data=detected))
+                    #self.get_logger().info(f'✅ Color detectado estable: {detected}')
+            else:
+                # Si no hay detección, reiniciar el contador
+                self.current_candidate = 'none'
+                self.detection_counter = 0
 
             # Publicar imagen anotada
             self.image_pub.publish(self.bridge.cv2_to_imgmsg(annotated_img, encoding='bgr8'))

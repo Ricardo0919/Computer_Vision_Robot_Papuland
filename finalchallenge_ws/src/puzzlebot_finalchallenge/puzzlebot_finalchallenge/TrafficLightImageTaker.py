@@ -17,12 +17,20 @@ from cv_bridge import CvBridge
 import cv2
 import os
 
-# Cambia esto por tu clase actual ('red', 'green', 'yellow', 'off')
-CURRENT_CLASS = 'red_out'
+# Diccionario de clases y sus carpetas
+CLASSES = {
+    'green_track':  {'key': ord('g'), 'count': 0},
+    'red_track':    {'key': ord('r'), 'count': 0},
+    'yellow_track': {'key': ord('y'), 'count': 0}
+}
 
-# Carpeta destino
-SAVE_PATH = f'/home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/finalchallenge_ws/CNN/TrafficLight/dataset/{CURRENT_CLASS}'
-os.makedirs(SAVE_PATH, exist_ok=True)
+# Ruta base
+BASE_PATH = '/home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/finalchallenge_ws/CNN/TrafficLight/dataset'
+
+# Asegúrate de que existan las carpetas
+for class_name in CLASSES:
+    full_path = os.path.join(BASE_PATH, class_name)
+    os.makedirs(full_path, exist_ok=True)
 
 class ImageSaver(Node):
     def __init__(self):
@@ -33,21 +41,20 @@ class ImageSaver(Node):
             self.listener_callback,
             10)
         self.bridge = CvBridge()
-        self.image_count = 0
 
     def listener_callback(self, msg):
         cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
         cv2.imshow('Captura', cv_image)
         key = cv2.waitKey(1)
 
-        # Si presionas 's', guarda la imagen
-        if key == ord('s'):
-            filename = os.path.join(SAVE_PATH, f'img_{self.image_count:03d}.png')
-            cv2.imwrite(filename, cv_image)
-            print(f'[✔] Imagen guardada: {filename}')
-            self.image_count += 1
+        for class_name, data in CLASSES.items():
+            if key == data['key']:
+                count = data['count']
+                filename = os.path.join(BASE_PATH, class_name, f'img_{count:03d}.png')
+                cv2.imwrite(filename, cv_image)
+                print(f'[✔] Imagen guardada: {filename}')
+                CLASSES[class_name]['count'] += 1
 
-        # Si presionas 'q', termina
         if key == ord('q'):
             rclpy.shutdown()
 
