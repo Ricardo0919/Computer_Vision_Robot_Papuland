@@ -19,8 +19,6 @@
   <exec_depend>python3-numpy</exec_depend>
   <exec_depend>ultralytics</exec_depend>
   <exec_depend>cv_bridge</exec_depend>
-  <exec_depend>scikit-fuzzy</exec_depend>
-
 
   <!-- Dependencias para generar mensajes personalizados -->
   <build_depend>rosidl_default_generators</build_depend>

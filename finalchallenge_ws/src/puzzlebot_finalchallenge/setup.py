@@ -35,8 +35,7 @@ setup(
         'ultralytics',
         'opencv-python',
         'transforms3d',
-        'cv_bridge',
-        'scikit-fuzzy'
+        'cv_bridge'
     ],
 
     zip_safe=True,
