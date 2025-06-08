@@ -103,13 +103,13 @@ def generate_launch_description():
     )
 
     # Nodo que lanza la interfaz gráfica de rqt_image_view para visualizar la imagen de lineas detectadas
-    rqt_image_view_line = Node(
+    rqt_image_view_signal = Node(
         name="rqt_image_view",
         package='rqt_image_view',
         executable='rqt_image_view',
         emulate_tty=True,
         output='screen',
-        arguments=['/processed_line_image'] # Tópico de imagen procesada
+        arguments=['/traffic_signal'] # Tópico de imagen procesada
     )
 
     # Nodo que lanza la interfaz gráfica de rqt_image_view para visualizar la imagen de colores detectados
@@ -119,10 +119,10 @@ def generate_launch_description():
         executable='rqt_image_view',
         emulate_tty=True,
         output='screen',
-        arguments=['/processed_img'] # Tópico de imagen procesada
+        arguments=['/traffic_light'] # Tópico de imagen procesada
     )
 
     # Descripción de lanzamiento (solo con nodos activos por defecto)
-    l_d = LaunchDescription([LineFollower, Controller, ZebraDetection, TrafficSignalDetector, TrafficLightDetector, OdometryNode, PathFollower, rqt_image_view_line, rqt_image_view_color])
+    l_d = LaunchDescription([LineFollower, Controller, ZebraDetection, TrafficSignalDetector, TrafficLightDetector, OdometryNode, PathFollower, rqt_image_view_signal, rqt_image_view_color])
 
     return l_d
