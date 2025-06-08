@@ -1,13 +1,6 @@
 #!/usr/bin/env python3
 # ------------------------------------------------------------------------------
 # Proyecto: Puzzlebot Final Challenge - Nodo ROS2 para detección de luces de semáforo con YOLOv8
-# Materia: Implementación de Robótica Inteligente
-# Fecha: 12 de junio de 2025
-# Alumnos:
-#   - Jonathan Arles Guevara Molina  | A01710380
-#   - Ezzat Alzahouri Campos         | A01710709
-#   - José Ángel Huerta Ríos         | A01710607
-#   - Ricardo Sierra Roa             | A01709887
 # ------------------------------------------------------------------------------
 
 import rclpy
@@ -25,32 +18,32 @@ class YOLOv8TrafficLightDetector(Node):
     def __init__(self):
         super().__init__('yolov8_traffic_light_detector')
 
-        # Suscripción al tópico de imagen
         self.subscription = self.create_subscription(Image, 'video_source/raw', self.image_callback, 10)
         self.bridge = CvBridge()
         self.cv_img = None
         self.new_img = False
 
-        # Publicadores
         self.color_pub = self.create_publisher(String, 'color_detector', 10)
         self.image_pub = self.create_publisher(Image, 'traffic_light', 10)
 
-        # Temporizador
         self.create_timer(0.1, self.timer_callback)
 
-        # Cargar modelo YOLOv8
         model_path = Path(get_package_share_directory('puzzlebot_finalchallenge')) / 'models' / 'TrafficLights.pt'
         self.model = YOLO(str(model_path))
         self.names = self.model.names
         self.prev_detected = 'none'
 
-        # Debounce temporal (mínimo 3 frames consistentes)
         self.detection_counter = 0
         self.min_stable_frames = 3
         self.current_candidate = 'none'
 
-        # Publicar estado inicial
+        self.miss_counter = 0
+        self.miss_tolerance = 20
+
+        # Publicar solo una vez al inicio
+        self.initial_published = False
         self.color_pub.publish(String(data='none'))
+        self.initial_published = True
         self.get_logger().info('🚦 Nodo YOLOv8 iniciado y modelo cargado correctamente.')
 
     def image_callback(self, msg):
@@ -68,19 +61,17 @@ class YOLOv8TrafficLightDetector(Node):
         img = cv2.resize(self.cv_img.copy(), (160, 120))
 
         try:
-            results = self.model(img, imgsz=160, conf=0.5)
+            results = self.model(img, imgsz=160, conf=0.75)
             annotated_img = img.copy()
             detected = None
 
             if results[0].boxes is not None and len(results[0].boxes):
-                # Tomar solo la primera detección
                 box = results[0].boxes[0]
                 cls_id = int(box.cls[0])
                 conf = float(box.conf[0])
                 label = self.names[cls_id]
                 detected = label
 
-                # Asignar color por clase
                 color_map = {
                     'red': (0, 0, 255),
                     'yellow': (0, 255, 255),
@@ -88,14 +79,15 @@ class YOLOv8TrafficLightDetector(Node):
                 }
                 box_color = color_map.get(label, (255, 255, 255))
 
-                # Dibujar caja y etiqueta
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
                 cv2.rectangle(annotated_img, (x1, y1), (x2, y2), box_color, 1)
                 text = f"{label} {conf:.2f}"
                 cv2.putText(annotated_img, text, (x1, y1 - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.5, box_color, 1)
 
-            # Lógica de debounce: publicar solo si se mantiene el color 3 frames
+            # Lógica de debounce mejorada
             if detected:
+                self.miss_counter = 0
+
                 if detected == self.current_candidate:
                     self.detection_counter += 1
                 else:
@@ -105,11 +97,13 @@ class YOLOv8TrafficLightDetector(Node):
                 if self.detection_counter >= self.min_stable_frames and detected != self.prev_detected:
                     self.prev_detected = detected
                     self.color_pub.publish(String(data=detected))
-                    #self.get_logger().info(f'✅ Color detectado estable: {detected}')
+                    self.get_logger().info(f'✅ Color detectado estable: {detected} confiabilidad: {conf:.2f}')
             else:
-                # Si no hay detección, reiniciar el contador
-                self.current_candidate = 'none'
-                self.detection_counter = 0
+                self.miss_counter += 1
+                if self.miss_counter >= self.miss_tolerance:
+                    # Ya no se publica 'none', solo se ignora el frame
+                    self.current_candidate = 'none'
+                    self.detection_counter = 0
 
             # Publicar imagen anotada
             self.image_pub.publish(self.bridge.cv2_to_imgmsg(annotated_img, encoding='bgr8'))

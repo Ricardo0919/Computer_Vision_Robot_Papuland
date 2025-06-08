@@ -190,7 +190,7 @@ class Controller(Node):
             f'Err {self.error:+5.1f} dErr {self.derror:+6.1f} '
             f'v {v:0.2f} ang {w:0.2f} ({self.traffic_light_state})'
         )
-        return msg  # ← permite reutilizar
+        return msg
 
     def shutdown_function(self, *_):
         self.get_logger().info("Shutting down. Stopping robot…")

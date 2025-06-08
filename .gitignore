@@ -49,6 +49,9 @@ CNN/TrafficLight/TrafficLightPytorchTrack/datasetOriginal/
 CNN/TrafficLight/TrafficLightPytorchTrack/datasetTrack/
 **/CNN/TrafficLight/TrafficLightPytorchTrack/datasetTrack/
 
+CNN/TrafficLight/TrafficLightPytorchExtra/dataset/
+**/CNN/TrafficLight/TrafficLightPytorchExtra/dataset/
+
 # Carpetas de datasets de señales de tráfico
 CNN/Signal/dataset/
 **/CNN/Signal/dataset/

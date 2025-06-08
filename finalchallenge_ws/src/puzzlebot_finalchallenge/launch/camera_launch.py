@@ -55,7 +55,7 @@ def generate_launch_description():
         executable='rqt_image_view',
         emulate_tty=True,
         output='screen',
-        arguments=['/processed_img']        # Tópico de imagen procesada traffic light
+        arguments=['/traffic_light']        # Tópico de imagen procesada traffic light
     )
 
     rqt_image_view_signal = Node(
@@ -64,7 +64,7 @@ def generate_launch_description():
         executable='rqt_image_view',
         emulate_tty=True,
         output='screen',
-        arguments=['/processed_signal_img']  # Tópico de imagen procesada traffic signal
+        arguments=['/traffic_signal']  # Tópico de imagen procesada traffic signal
     )
 
     rqt_image_view_zebra = Node(
