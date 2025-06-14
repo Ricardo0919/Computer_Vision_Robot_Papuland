@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
-# Proyecto: Puzzlebot Final Challenge - launch file
+# Proyecto: Puzzlebot Final Challenge - Launch file para la computadora del proyecto final 
 # Materia: Implementación de Robótica Inteligente
-# Fecha: 12 de junio de 2025
+# Fecha: 14 de junio de 2025
 # Alumnos:
 #   - Jonathan Arles Guevara Molina  | A01710380
 #   - Ezzat Alzahouri Campos         | A01710709
@@ -71,7 +71,7 @@ def generate_launch_description():
         output='screen',
     )
 
-    # Nodo que lanza la interfaz gráfica de rqt_image_view para visualizar la imagen de lineas detectadas
+    # Nodo que lanza la interfaz gráfica de rqt_image_view para visualizar la imagen de linea detectada a seguir
     rqt_image_view_line = Node(
         name="rqt_image_view",
         package='rqt_image_view',
@@ -111,7 +111,7 @@ def generate_launch_description():
         arguments=['/zebra_image']  # Tópico de imagen procesada zebra
     )
 
-    # Descripción de lanzamiento (solo con nodos activos por defecto)
+    # Descripción de lanzamiento
     l_d = LaunchDescription([Controller, TrafficSignalDetector, TrafficLightDetector, OdometryNode, PathFollower, rqt_image_view_signal, rqt_image_view_color, rqt_image_view_line, rqt_image_view_zebra])
 
     return l_d

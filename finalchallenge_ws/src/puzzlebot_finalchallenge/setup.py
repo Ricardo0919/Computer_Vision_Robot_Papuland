@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Proyecto: Puzzlebot Final Challenge - setup.py
 # Materia: Implementación de Robótica Inteligente
-# Fecha: 12 de junio de 2025
+# Fecha: 14 de junio de 2025
 # Alumnos:
 #   - Jonathan Arles Guevara Molina  | A01710380
 #   - Ezzat Alzahouri Campos         | A01710709

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # ------------------------------------------------------------------------------
-# Proyecto: Puzzlebot Final Challenge - Nodo ROS2 para detección de señales de tráfico con YOLOv8
+# Proyecto: Puzzlebot Final Challenge - Nodo para detección de señales de tráfico con YOLOv8
 # Materia: Implementación de Robótica Inteligente
-# Fecha: 12 de junio de 2025
+# Fecha: 14 de junio de 2025
 # Alumnos:
 #   - Jonathan Arles Guevara Molina  | A01710380
 #   - Ezzat Alzahouri Campos         | A01710709
@@ -25,17 +25,17 @@ class YOLOv8TrafficSignalDetector(Node):
     def __init__(self):
         super().__init__('yolov8_traffic_signal_detector')
 
-        # Suscripción al tópico de imagen
+        # Subscripción a la cámara
         self.subscription = self.create_subscription(Image, 'video_source/raw', self.image_callback, 10)
         self.bridge = CvBridge()
         self.cv_img = None
         self.new_img = False
 
-        # Publicadores
+        # Publicadores de señal detectada y vista anotada
         self.signal_pub = self.create_publisher(String, 'signal_detector', 10)
         self.image_pub = self.create_publisher(Image, 'traffic_signal', 10)
 
-        # Temporizador
+        # Temporizador para inferencia (10 Hz)
         self.create_timer(0.1, self.timer_callback)
 
         # Cargar modelo YOLOv8
@@ -44,10 +44,11 @@ class YOLOv8TrafficSignalDetector(Node):
         self.names = self.model.names
         self.prev_detected = 'none'
 
-        # Publicar estado inicial
+        # Estado inicial publicado una vez
         self.signal_pub.publish(String(data='none'))
         self.get_logger().info('🚧 Nodo YOLOv8 de señales iniciado y modelo cargado correctamente.')
 
+    # Callback de imagen: convierte la imagen ROS a OpenCV
     def image_callback(self, msg):
         try:
             self.cv_img = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
@@ -55,6 +56,7 @@ class YOLOv8TrafficSignalDetector(Node):
         except Exception as e:
             self.get_logger().warn(f'Error al convertir la imagen: {e}')
 
+    # Callback del temporizador: ejecuta inferencia sobre la imagen
     def timer_callback(self):
         if not self.new_img:
             return
@@ -67,6 +69,7 @@ class YOLOv8TrafficSignalDetector(Node):
             annotated_img = img.copy()
             detected = None
 
+            # Procesar la primera detección si existe
             if results[0].boxes is not None and len(results[0].boxes):
                 # Tomar solo la primera detección
                 box = results[0].boxes[0]
@@ -75,31 +78,30 @@ class YOLOv8TrafficSignalDetector(Node):
                 label = self.names[cls_id]
                 detected = label
 
-                # Dibujar caja y etiqueta
+                # Dibujar bounding box y etiqueta
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
                 cv2.rectangle(annotated_img, (x1, y1), (x2, y2), (255, 255, 0), 1)
                 text = f"{label} {conf:.2f}"
                 cv2.putText(annotated_img, text, (x1, y1 - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 1)
 
-            # Publicar la señal solo si cambia
+            # Publicar si la señal ha cambiado respecto a la anterior
             if detected and detected != self.prev_detected:
                 self.prev_detected = detected
                 self.signal_pub.publish(String(data=detected))
 
-            # Publicar imagen anotada
+            # Publicar imagen anotada para debug visual
             self.image_pub.publish(self.bridge.cv2_to_imgmsg(annotated_img, encoding='bgr8'))
 
         except Exception as e:
             self.get_logger().warn(f'Error durante la inferencia: {e}')
 
-
+# ---------------- main ----------------
 def main(args=None):
     rclpy.init(args=args)
     node = YOLOv8TrafficSignalDetector()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
-
 
 if __name__ == '__main__':
     main()

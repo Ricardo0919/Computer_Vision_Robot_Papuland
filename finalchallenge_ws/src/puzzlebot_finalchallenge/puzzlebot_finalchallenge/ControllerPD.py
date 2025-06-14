@@ -2,7 +2,7 @@
 # ------------------------------------------------------------------------------
 # Proyecto: Puzzlebot Final Challenge - Nodo Controlador PD
 # Materia: Implementación de Robótica Inteligente
-# Fecha: 12 de junio de 2025
+# Fecha: 14 de junio de 2025
 # Alumnos:
 #   - Jonathan Arles Guevara Molina  | A01710380
 #   - Ezzat Alzahouri Campos         | A01710709
@@ -20,7 +20,7 @@ class Controller(Node):
     def __init__(self):
         super().__init__('Controller')
 
-        # ─── Parámetros ROS (override en YAML si quieres) ───
+        # Declaración de parámetros del controlador PD
         self.declare_parameter('kp_base',   0.0035)
         self.declare_parameter('kd',        0.0015)
         self.declare_parameter('v_max',     0.15)   # m/s recta
@@ -29,12 +29,13 @@ class Controller(Node):
         self.declare_parameter('alpha',     0.45)   # filtro derror
         self.declare_parameter('max_error', 40.0)   # px
 
-        # ─── Variables internas ───
+        # Variables internas del controlador
         self.error, self.prev_error = 0.0, 0.0
         self.derror = 0.0
         self.prev_time = self.get_clock().now()
         self.valid_error = False
 
+        # Estado del entorno y decisiones del robot
         self.traffic_light_state = "none"
         self.current_speed = 0.0
         self.ready_to_go = False
@@ -42,49 +43,50 @@ class Controller(Node):
         self.signal_detected = "none"
         self.path_following = False
 
-        # slow-mode timer (None = no slow)
+        # Tiempos para modos especiales
         self.slow_end_time = None
-
         self.stop_end_time = None
 
 
-        # Subs / pubs
+        # Suscriptores a los distintos tópicos de nodos
         self.create_subscription(Float32, '/line_follower_data', self.cb_error,   10)
         self.create_subscription(String,  '/color_detector',     self.cb_color,   10)
         self.create_subscription(String,  '/signal_detector',    self.cb_signal,  10)
         self.create_subscription(Bool,    '/zebra_detected',     self.cb_zebra,   10)
         self.create_subscription(String,  '/path_done',          self.cb_path_done, 10)
 
+        # Publicadores de velocidad y dirección
         self.pub_cmd = self.create_publisher(Twist, '/cmd_vel', 10)
         self.pub_dir = self.create_publisher(String, '/go_direction', 10)
 
-        # Shutdown limpio
+        # Manejo de interrupciones para apagado
         signal.signal(signal.SIGINT, self.shutdown_function)
 
-        # Timer principal (20 Hz)
+        # Timer principal que ejecuta el bucle de control (20 Hz)
         self.create_timer(0.05, self.cb_timer)
         self.get_logger().info('🚗 Controller continuo ON')
 
-    # ---------- Callbacks ----------
+    # Callback que recibe el error lateral del seguidor de línea
     def cb_error(self, msg: Float32):
         self.valid_error = not np.isnan(msg.data)
         if self.valid_error:
             self.error = msg.data
 
+    # Callback cuando termina un cambio de trayectoria
     def cb_path_done(self, msg: String):
         if msg.data == "done":
             self.zebra_detected = False
             self.path_following = False
             self.current_speed = 0.0
 
+    # Callback cuando se detecta una intersección
     def cb_zebra(self, msg: Bool):
         self.zebra_detected = msg.data
         self.get_logger().info(f'Cebra detectada: {self.zebra_detected}')
 
+    # Callback de detección de señales de tráfico (stop, give_way, worker_ahead, turn_left, turn_right, straight)
     def cb_signal(self, msg: String):
         self.signal_detected = msg.data
-
-        # ← NEW: programa slow-mode según la señal
         now = self.get_clock().now()
         if msg.data == "worker_ahead":
             self.slow_end_time = now + rclpy.duration.Duration(seconds=10)
@@ -96,6 +98,7 @@ class Controller(Node):
             self.stop_end_time = now + rclpy.duration.Duration(seconds=10)
             self.get_logger().info("STOP -> detención 10 s")
 
+    # Callback del detector de semáforo (rojo, amarillo, verde)
     def cb_color(self, msg: String):
         if msg.data in ("red", "yellow", "green"):
             self.traffic_light_state = msg.data
@@ -104,7 +107,7 @@ class Controller(Node):
                 self.get_logger().info("Semáforo verde → listos para avanzar")
         self.get_logger().info(f'Semáforo: {self.traffic_light_state}')
 
-    # ---------- Bucle de control ----------
+    # Bucle principal de control: evalúa errores, estados y actúa en consecuencia
     def cb_timer(self):
         now = self.get_clock().now()
         dt = (now - self.prev_time).nanoseconds * 1e-9
@@ -112,12 +115,12 @@ class Controller(Node):
         if dt <= 0: return
         if self.path_following: return
 
-        # --- Stop del robot ---
+        # Stop si condiciones no son seguras
         if (not self.valid_error or not self.ready_to_go or self.traffic_light_state == "red"):
             self.publish_twist(0.0, 0.0)
             return
         
-        # --- STOP total por señal ---
+        # Stop por señal de tráfico
         if self.stop_end_time:
             if now < self.stop_end_time:
                 self.publish_twist(0.0, 0.0)
@@ -125,7 +128,7 @@ class Controller(Node):
             else:
                 self.stop_end_time = None  # se acabó el stop
 
-        # --- Path-switch en cebra ---
+        # Cambio de trayectoria al detectar cebra + señal + verde
         if (self.zebra_detected and
             self.signal_detected in ("straight", "turn_left", "turn_right") and
             not self.path_following and
@@ -136,7 +139,7 @@ class Controller(Node):
             self.pub_dir.publish(String(data=self.signal_detected))
             return
 
-        # ---------- PID ----------
+        # Cálculo del PD adaptativo
         max_err = self.get_parameter('max_error').value
         err = float(np.clip(self.error, -max_err, max_err))
 
@@ -152,7 +155,7 @@ class Controller(Node):
         ang = - (kp * err + kd * deriv)
         ang = float(np.clip(ang, -1.2, 1.2))
 
-        # ---------- Velocidad linear ----------
+        # Cálculo de velocidad lineal según error
         v_max = self.get_parameter('v_max').value
         v_min = self.get_parameter('v_min').value
         k_err  = (v_max - v_min) / max_err
@@ -161,17 +164,17 @@ class Controller(Node):
         v_target = v_max - k_err * abs(err) - k_derr * abs(self.derror)
         v_target = float(np.clip(v_target, v_min, v_max))
 
-        # Amarillo → precaución
+        # Modo precaución si semáforo amarillo
         if self.traffic_light_state == "yellow":
             v_target = min(v_target, 0.03)
 
-        # ---------- Slow-mode override ----------
+        # Reducción de velocidad si está activo el slow-mode
         if self.slow_end_time and now < self.slow_end_time:
-            v_target = v_min  # full crawl
+            v_target = v_min  # disminuye velocidad
         elif self.slow_end_time and now >= self.slow_end_time:
             self.slow_end_time = None  # se acabó el tiempo de slow-mode
 
-        # ---------- Rampa suave ----------
+        # Aplicar rampa suave para evitar saltos bruscos en la velocidad
         step = self.get_parameter('ramp_step').value
         if self.current_speed < v_target:
             self.current_speed = min(self.current_speed + step, v_target)
@@ -180,18 +183,16 @@ class Controller(Node):
 
         self.publish_twist(self.current_speed, ang)
 
-    # ---------- Util ----------
+    # Publica el comando de velocidad y dirección en el topic '/cmd_vel'-
     def publish_twist(self, v: float, w: float):
         msg = Twist()
         msg.linear.x  = v
         msg.angular.z = w
         self.pub_cmd.publish(msg)
-        self.get_logger().info(
-            f'Err {self.error:+5.1f} dErr {self.derror:+6.1f} '
-            f'v {v:0.2f} ang {w:0.2f} ({self.traffic_light_state})'
-        )
+        self.get_logger().info(f'Err {self.error:+5.1f} dErr {self.derror:+6.1f}' f'v {v:0.2f} ang {w:0.2f} ({self.traffic_light_state})')
         return msg
-
+    
+    # Función para detener el robot y apagar ROS2 correctamente
     def shutdown_function(self, *_):
         self.get_logger().info("Shutting down. Stopping robot…")
         self.publish_twist(0.0, 0.0)

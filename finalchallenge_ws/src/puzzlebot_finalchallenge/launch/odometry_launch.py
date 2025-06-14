@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Proyecto: Puzzlebot Final Challenge - Odometry launch file
 # Materia: Implementación de Robótica Inteligente
-# Fecha: 12 de junio de 2025
+# Fecha: 14 de junio de 2025
 # Alumnos:
 #   - Jonathan Arles Guevara Molina  | A01710380
 #   - Ezzat Alzahouri Campos         | A01710709
@@ -41,7 +41,7 @@ def generate_launch_description():
         output='screen',
     )
 
-    # Descripción de lanzamiento (solo con nodos activos por defecto)
+    # Descripción de lanzamiento
     l_d = LaunchDescription([PathFollower, OdometryNode])
 
     return l_d

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # ------------------------------------------------------------------------------
-# Proyecto: Puzzlebot Final Challenge - Nodo de captura de imágenes del semáforo
+# Proyecto: Puzzlebot Final Challenge - Nodo para tomar imágenes del semáforo
 # Materia: Implementación de Robótica Inteligente
-# Fecha: 12 de junio de 2025
+# Fecha: 14 de junio de 2025
 # Alumnos:
 #   - Jonathan Arles Guevara Molina  | A01710380
 #   - Ezzat Alzahouri Campos         | A01710709
@@ -17,17 +17,17 @@ from cv_bridge import CvBridge
 import cv2
 import os
 
-# Diccionario de clases y sus carpetas
+# Diccionario de clases y sus teclas asociadas para guardar
 CLASSES = {
     'green_track':  {'key': ord('g'), 'count': 0},
     'red_track':    {'key': ord('r'), 'count': 0},
     'yellow_track': {'key': ord('y'), 'count': 0}
 }
 
-# Ruta base
+# Ruta base donde se almacenan las imágenes
 BASE_PATH = '/home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/finalchallenge_ws/CNN/TrafficLight/dataset'
 
-# Asegúrate de que existan las carpetas
+# Crear carpetas si no existen
 for class_name in CLASSES:
     full_path = os.path.join(BASE_PATH, class_name)
     os.makedirs(full_path, exist_ok=True)
@@ -35,6 +35,8 @@ for class_name in CLASSES:
 class ImageSaver(Node):
     def __init__(self):
         super().__init__('image_saver')
+
+        # Subscripción al feed de la cámara
         self.subscription = self.create_subscription(
             Image,
             '/video_source/raw',
@@ -42,6 +44,7 @@ class ImageSaver(Node):
             10)
         self.bridge = CvBridge()
 
+    # Callback que muestra la imagen y guarda si se presiona la tecla correcta
     def listener_callback(self, msg):
         cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
         cv2.imshow('Captura', cv_image)
@@ -55,9 +58,11 @@ class ImageSaver(Node):
                 print(f'[✔] Imagen guardada: {filename}')
                 CLASSES[class_name]['count'] += 1
 
+        # Salir del nodo con 'q'
         if key == ord('q'):
             rclpy.shutdown()
 
+# ---------------- main ----------------
 def main(args=None):
     rclpy.init(args=args)
     node = ImageSaver()

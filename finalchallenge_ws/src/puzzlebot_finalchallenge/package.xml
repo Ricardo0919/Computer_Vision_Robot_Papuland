@@ -1,10 +1,19 @@
+<!-- Proyecto: Puzzlebot Final Challenge - package.xml                          -->
+<!-- Materia: Implementación de Robótica Inteligente                            -->
+<!-- Fecha: 14 de junio de 2025                                                 -->
+<!-- Alumnos:                                                                   -->
+<!--   - Jonathan Arles Guevara Molina  | A01710380                             -->
+<!--   - Ezzat Alzahouri Campos         | A01710709                             -->
+<!--   - José Ángel Huerta Ríos         | A01710607                             -->
+<!--   - Ricardo Sierra Roa             | A01709887                             -->
+
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>puzzlebot_finalchallenge</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
-  <maintainer email="rickisierra03@gmail.com">ricardosierra</maintainer>
+  <maintainer email="papuland@todo.com">papuland</maintainer>
   <license>TODO: License declaration</license>
 
   <!-- Dependencias del paquete -->

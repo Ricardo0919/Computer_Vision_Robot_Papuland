@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
-# Proyecto: Puzzlebot Final Challenge - Semaforo launch file
+# Proyecto: Puzzlebot Final Challenge - Launch File para hacer debug de nodos respecto a la cámara
 # Materia: Implementación de Robótica Inteligente
-# Fecha: 12 de junio de 2025
+# Fecha: 14 de junio de 2025
 # Alumnos:
 #   - Jonathan Arles Guevara Molina  | A01710380
 #   - Ezzat Alzahouri Campos         | A01710709
@@ -48,6 +48,16 @@ def generate_launch_description():
         ]
     )
 
+    # Nodo que lanza la interfaz gráfica de rqt_image_view para visualizar la imagen de lineas detectadas
+    rqt_image_view_signal = Node(
+        name="rqt_image_view",
+        package='rqt_image_view',
+        executable='rqt_image_view',
+        emulate_tty=True,
+        output='screen',
+        arguments=['/traffic_signal'] # Tópico de imagen procesada
+    )
+
     # Nodo que lanza la interfaz gráfica de rqt_image_view para visualizar la imagen de colores detectados
     rqt_image_view_color = Node(
         name="rqt_image_view",
@@ -55,28 +65,20 @@ def generate_launch_description():
         executable='rqt_image_view',
         emulate_tty=True,
         output='screen',
-        arguments=['/traffic_light']        # Tópico de imagen procesada traffic light
+        arguments=['/traffic_light'] # Tópico de imagen procesada
     )
 
-    rqt_image_view_signal = Node(
-        name="rqt_image_view",
-        package='rqt_image_view',
-        executable='rqt_image_view',
-        emulate_tty=True,
-        output='screen',
-        arguments=['/traffic_signal']  # Tópico de imagen procesada traffic signal
-    )
-
+    # Nodo que lanza la interfaz gráfica de rqt_image_view para visualizar la imagen de zebra detectada
     rqt_image_view_zebra = Node(
         name="rqt_image_view",
         package='rqt_image_view',
         executable='rqt_image_view',
         emulate_tty=True,
         output='screen',
-        arguments=['/zebra_image']          # Tópico de imagen procesada zebra
+        arguments=['/zebra_image'] # Tópico de imagen procesada 
     )
 
-    # Descripción de lanzamiento (solo con nodos activos por defecto)
+    # Descripción de lanzamiento
     l_d = LaunchDescription([TrafficLightDetector, rqt_image_view_signal])
 
     return l_d

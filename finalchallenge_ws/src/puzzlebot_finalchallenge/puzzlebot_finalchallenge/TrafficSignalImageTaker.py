@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # ------------------------------------------------------------------------------
-# Proyecto: Puzzlebot Final Challenge - Nodo de captura de imágenes del semáforo
+# Proyecto: Puzzlebot Final Challenge - Nodo para tomar imágenes de señales de tráfico
 # Materia: Implementación de Robótica Inteligente
-# Fecha: 12 de junio de 2025
+# Fecha: 14 de junio de 2025
 # Alumnos:
 #   - Jonathan Arles Guevara Molina  | A01710380
 #   - Ezzat Alzahouri Campos         | A01710709
@@ -20,13 +20,15 @@ import os
 # Cambia esto por tu clase actual ('stop', 'left', 'right', 'straight', 'worker', 'give_way', 'null')
 CURRENT_CLASS = 'straight_extra'
 
-# Carpeta destino
+# Carpeta de destino para guardar las imágenes
 SAVE_PATH = f'/home/ricardosierra/Documents/TEC/6Semestre/ImplementacionDeRoboticaInteligente/ManchesterRobotics/Computer_Vision_Robot_Papuland/finalchallenge_ws/CNN/Signal/dataset/{CURRENT_CLASS}'
 os.makedirs(SAVE_PATH, exist_ok=True)
 
 class ImageSaver(Node):
     def __init__(self):
         super().__init__('image_saver')
+
+        # Subscripción al topic de imagen
         self.subscription = self.create_subscription(
             Image,
             '/video_source/raw',
@@ -35,22 +37,24 @@ class ImageSaver(Node):
         self.bridge = CvBridge()
         self.image_count = 0
 
+    # Muestra la imagen en una ventana y guarda si presionas 's'
     def listener_callback(self, msg):
         cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
         cv2.imshow('Captura', cv_image)
         key = cv2.waitKey(1)
 
-        # Si presionas 's', guarda la imagen
+        # Guardar imagen con 's'
         if key == ord('s'):
             filename = os.path.join(SAVE_PATH, f'img_{self.image_count:03d}.png')
             cv2.imwrite(filename, cv_image)
             print(f'[✔] Imagen guardada: {filename}')
             self.image_count += 1
 
-        # Si presionas 'q', termina
+        # Salir del nodo con 'q'
         if key == ord('q'):
             rclpy.shutdown()
 
+# ---------------- main ----------------
 def main(args=None):
     rclpy.init(args=args)
     node = ImageSaver()

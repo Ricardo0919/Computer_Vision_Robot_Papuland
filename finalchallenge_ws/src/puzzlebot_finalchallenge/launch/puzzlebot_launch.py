@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
-# Proyecto: Puzzlebot Final Challenge - launch file
+# Proyecto: Puzzlebot Final Challenge - Launch file para el puzzlebot del proyecto final 
 # Materia: Implementación de Robótica Inteligente
-# Fecha: 12 de junio de 2025
+# Fecha: 14 de junio de 2025
 # Alumnos:
 #   - Jonathan Arles Guevara Molina  | A01710380
 #   - Ezzat Alzahouri Campos         | A01710709
@@ -22,10 +22,10 @@ def generate_launch_description():
         emulate_tty=True,
         output='screen',
         parameters=[
-            {'mode': 'real'},  # Modo de operación: 'sim' o 'real'
+            {'mode': 'real'},   # Modo de operación: 'sim' o 'real'
             {'roi_ratio': 15},  # Proporción del área de interés respecto a la imagen
-            {'roi_left': 0},   # Margen izquierdo del área de interés
-            {'roi_right': 0}   # Margen derecho del área de interés
+            {'roi_left': 0},    # Margen izquierdo del área de interés
+            {'roi_right': 0}    # Margen derecho del área de interés
         ]
     )
 
@@ -39,14 +39,13 @@ def generate_launch_description():
         parameters=[
             {'mode': 'real'},     # Modo de operación: 'sim' o 'real'
             {'roi_top': 45},      # Margen superior del área de interés
-            {'roi_bottom': 110},   # Margen inferior del área de interés
-            {'roi_left': 0},     # Margen izquierdo del área de interés
-            {'roi_right': 0}     # Margen derecho del área de interés
+            {'roi_bottom': 110},  # Margen inferior del área de interés
+            {'roi_left': 0},      # Margen izquierdo del área de interés
+            {'roi_right': 0}      # Margen derecho del área de interés
         ]
     )
 
-    
-    # Descripción de lanzamiento (solo con nodos activos por defecto)
+    # Descripción de lanzamiento 
     l_d = LaunchDescription([LineFollower, ZebraDetection])
 
     return l_d
